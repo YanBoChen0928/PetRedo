@@ -8,6 +8,10 @@ import model.PetState;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Graphical user interface for the Virtual Pet application.
@@ -23,66 +27,134 @@ public class PetView extends JFrame {
     private JButton playButton;
     private JButton restButton;
     private JButton newPetButton;
-    private JLabel petIconLabel;
+    
+    // Pet display components
+    private JPanel cardPanel;
+    private CardLayout cardLayout;
+    private static final String[] STATES = {
+        "normal", "hungry", "dirty", "tired", "bored", "sleeping", "happy"
+    };
+    private final Map<String, JLabel> stateLabels = new HashMap<>();
+    
+    // 添加新的UI元素
+    private Map<PetState, JLabel> scoreLabels = new HashMap<>();
     
     /**
      * Creates and initializes the main application window.
      */
     public PetView() {
         initializeUI();
+        initializeStateImages();
     }
     
     /**
      * Sets up the user interface layout and components.
-     * Organizes components into status panel, message area, button panel, and pet icon.
      */
     private void initializeUI() {
         setTitle("Virtual Pet");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
-        setSize(400, 600);
+        setLayout(new BorderLayout(10, 10));
+        setSize(600, 400);
         
-        // Status panel setup
-        JPanel statusPanel = new JPanel(new GridLayout(2, 1));
+        // 左側面板：狀態和分數
+        JPanel leftPanel = new JPanel(new BorderLayout(5, 5));
+        
+        // 狀態面板
+        JPanel statusPanel = new JPanel(new GridLayout(2, 1, 5, 5));
         healthLabel = new JLabel("Health: 100");
         stateLabel = new JLabel("State: Normal");
         statusPanel.add(healthLabel);
         statusPanel.add(stateLabel);
+        leftPanel.add(statusPanel, BorderLayout.NORTH);
         
-        // Message area setup
-        messageArea = new JTextArea();
+        // 分數面板
+        JPanel scorePanel = new JPanel(new GridLayout(4, 1, 5, 5));
+        scorePanel.setBorder(BorderFactory.createTitledBorder("State Scores"));
+        for (PetState state : PetState.values()) {
+            if (state != PetState.NORMAL) {
+                JLabel scoreLabel = new JLabel(state.toString() + " Score: 0");
+                scoreLabels.put(state, scoreLabel);
+                scorePanel.add(scoreLabel);
+            }
+        }
+        leftPanel.add(scorePanel, BorderLayout.CENTER);
+        
+        // 中央面板：寵物圖示和消息
+        JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
+        
+        // 寵物圖示
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+        cardPanel.setPreferredSize(new Dimension(200, 200));
+        centerPanel.add(cardPanel, BorderLayout.CENTER);
+        
+        // 消息區域
+        messageArea = new JTextArea(5, 30);
         messageArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(messageArea);
-        scrollPane.setPreferredSize(new Dimension(380, 100));
+        centerPanel.add(scrollPane, BorderLayout.SOUTH);
         
-        // Action buttons setup
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        // 右側面板：操作按鈕
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 5, 5));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
         feedButton = new JButton("Feed");
         cleanButton = new JButton("Clean");
         playButton = new JButton("Play");
         restButton = new JButton("Rest");
+        newPetButton = new JButton("New Pet");
+        newPetButton.setEnabled(false);
+        
         buttonPanel.add(feedButton);
         buttonPanel.add(cleanButton);
         buttonPanel.add(playButton);
         buttonPanel.add(restButton);
+        buttonPanel.add(newPetButton);
         
-        // Pet icon setup
-        petIconLabel = new JLabel();
-        petIconLabel.setHorizontalAlignment(JLabel.CENTER);
-        updatePetIcon("normal.png");
+        // 組裝主界面
+        add(leftPanel, BorderLayout.WEST);
+        add(centerPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.EAST);
         
-        // New Pet button setup
-        newPetButton = new JButton("New Pet");
-        newPetButton.setEnabled(false);
-        
-        // Layout assembly
-        add(statusPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
-        add(petIconLabel, BorderLayout.CENTER);
-        add(newPetButton, BorderLayout.SOUTH);
-        
+        // 設置窗口位置
         setLocationRelativeTo(null);
+    }
+    
+    /**
+     * Initializes image labels for all pet states.
+     */
+    private void initializeStateImages() {
+        for (String state : STATES) {
+            JLabel imageLabel = new JLabel();
+            imageLabel.setHorizontalAlignment(JLabel.CENTER);
+            
+            String imagePath = "images/" + state + ".png";
+            URL resource = getClass().getClassLoader().getResource(imagePath);
+            if (resource != null) {
+                ImageIcon icon = new ImageIcon(resource);
+                Image image = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(image));
+            } else {
+                System.err.println("Warning: Could not load image: " + imagePath);
+                imageLabel.setText("Image not found: " + state);
+            }
+            
+            stateLabels.put(state, imageLabel);
+            cardPanel.add(imageLabel, state);
+        }
+    }
+    
+    /**
+     * Updates the pet's displayed state.
+     * @param state The state to display
+     */
+    public void updatePetIcon(String state) {
+        String stateName = state.toLowerCase().replace(".png", "");
+        if (stateLabels.containsKey(stateName)) {
+            cardLayout.show(cardPanel, stateName);
+        } else {
+            System.err.println("Warning: Unknown state: " + state);
+        }
     }
     
     /**
@@ -106,25 +178,13 @@ public class PetView extends JFrame {
     }
     
     /**
-     * Updates the pet's icon based on current state.
-     * @param iconPath Path to the icon resource
-     */
-    public void updatePetIcon(String iconPath) {
-        ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/" + iconPath));
-        //ToDo: Check if icon is null
-        //URL resource = getClass().getResource("/images/" + iconPath);
-        if (iconPath == null) {
-            throw new IllegalArgumentException("Image not found: /images/" + iconPath);
-        }
-        petIconLabel.setIcon(icon);
-    }
-    
-    /**
      * Adds a message to the message area.
      * @param message Message to display
      */
     public void appendMessage(String message) {
-        messageArea.append(message + "\n");
+        LocalDateTime now = LocalDateTime.now();
+        String timestamp = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        messageArea.append(String.format("[%s] %s%n", timestamp, message));
         messageArea.setCaretPosition(messageArea.getDocument().getLength());
     }
     
@@ -177,5 +237,20 @@ public class PetView extends JFrame {
         playButton.setEnabled(true);
         restButton.setEnabled(true);
         newPetButton.setEnabled(false);
+    }
+    
+    /**
+     * Updates the state score display.
+     * @param state The state to update
+     * @param score The score to display
+     */
+    public void updateStateScore(PetState state, int score) {
+        JLabel label = scoreLabels.get(state);
+        if (label != null) {
+            String stateText = state.toString().substring(0, 1).toUpperCase() + 
+                             state.toString().substring(1).toLowerCase();
+            String scoreBar = "|".repeat(score) + "-".repeat(10 - score);
+            label.setText(String.format("%s: [%s] (%d/10)", stateText, scoreBar, score));
+        }
     }
 } 

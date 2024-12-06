@@ -11,9 +11,10 @@ import java.util.concurrent.TimeUnit;
 public class TimeManager {
     private final Pet pet;
     private final ScheduledExecutorService scheduler;
+    private long sleepStartTime;  // 添加睡眠開始時間
     
-    // One game day equals 10 minutes real time
-    private static final long DAY_DURATION = 600_000;
+    // One game day equals 1 minute real time
+    private static final long DAY_DURATION = 60_000;
     
     /**
      * Creates a new TimeManager for the specified pet.
@@ -40,6 +41,9 @@ public class TimeManager {
         scheduler.scheduleAtFixedRate(() -> updateState(PetState.DIRTY), 0, 10, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(() -> updateState(PetState.TIRED), 0, 10, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(() -> updateState(PetState.BORED), 0, 5, TimeUnit.SECONDS);
+        
+        // 檢查睡眠時間
+        scheduler.scheduleAtFixedRate(this::checkSleepTime, 0, 1, TimeUnit.SECONDS);
     }
     
     /**
@@ -69,14 +73,17 @@ public class TimeManager {
      * @param state The state to update
      */
     private void updateState(PetState state) {
-        // Skip updates while sleeping (except TIRED)
-        if (pet.isSleeping() && state != PetState.TIRED) {
-            return;
+        if (pet.isSleeping()) {
+            return; // 睡眠時不更新任何狀態
         }
         
         int currentScore = pet.getStateScore(state);
         int increment = state.getWeight();
-        pet.updateState(state, currentScore + increment);
+        int newScore = Math.min(currentScore + increment, Pet.MAX_SCORE);
+        
+        if (newScore != currentScore) {
+            pet.updateState(state, newScore);
+        }
     }
     
     /**
@@ -84,5 +91,19 @@ public class TimeManager {
      */
     public void shutdown() {
         scheduler.shutdown();
+    }
+    
+    private void checkSleepTime() {
+        if (pet.isSleeping()) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - sleepStartTime >= 60_000) {
+                pet.setSleeping(false);
+                pet.updateCurrentState();
+            }
+        }
+    }
+    
+    public void startSleeping() {
+        sleepStartTime = System.currentTimeMillis();
     }
 } 

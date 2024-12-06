@@ -3,9 +3,11 @@ package model;
 import java.util.concurrent.ConcurrentHashMap;
 import model.state.BoredState;
 import model.state.DirtyState;
+import model.state.HappyState;
 import model.state.HungryState;
 import model.state.NormalState;
 import model.state.PetStateBase;
+import model.state.SleepingState;
 import model.state.TiredState;
 
 /**
@@ -15,6 +17,7 @@ import model.state.TiredState;
 public class Pet {
     // Core attributes
     private int health;
+    // it's not final here, it will update and change the state scores
     private ConcurrentHashMap<PetState, Integer> stateScores;
     private PetState currentState;
     private boolean isSleeping;
@@ -68,13 +71,16 @@ public class Pet {
     
     /**
      * Updates the current state based on state scores and weights.
-     * Chooses the state with highest weight among critical states (score = MAX_SCORE).
      */
-    private void updateCurrentState() {
+    public void updateCurrentState() {
+        if (isSleeping) {
+            currentStateObject = new SleepingState(this);
+            return;
+        }
+        
         PetState criticalState = null;
         int maxWeight = 0;
         
-        // Find the critical state with highest weight
         for (PetState state : stateScores.keySet()) {
             if (stateScores.get(state) >= MAX_SCORE) {
                 if (state.getWeight() > maxWeight) {
@@ -85,14 +91,7 @@ public class Pet {
         }
         
         this.currentState = (criticalState != null) ? criticalState : PetState.NORMAL;
-        updateStateObject();
-    }
-    
-    /**
-     * Updates the state object based on current state.
-     * Creates new state object to handle state-specific behavior.
-     */
-    private void updateStateObject() {
+        
         switch(currentState) {
             case NORMAL:
                 currentStateObject = new NormalState(this);
@@ -118,7 +117,6 @@ public class Pet {
      * @param action The action to perform
      */
     public void performAction(PetAction action) {
-        // Cannot perform actions while sleeping (except REST)
         if (isSleeping && action != PetAction.REST) {
             return;
         }
@@ -129,31 +127,59 @@ public class Pet {
             handleRestAction();
         } else {
             resetState(targetState);
+            showHappyState();
         }
         
         setLastActionTime(System.currentTimeMillis());
     }
     
-    /**
-     * Handles the REST action specifically.
-     * If pet is tired, it will enter sleep mode for 1 minute.
-     */
+    private void showHappyState() {
+        currentStateObject = new HappyState(this);
+        
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+                updateCurrentState();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
+    }
+    
     private void handleRestAction() {
-        if (currentState == PetState.TIRED) {
-            setSleeping(true);
-            resetState(PetState.TIRED);
-            // Auto wake up after 1 minute
-            new Thread(() -> {
-                try {
-                    Thread.sleep(60000);
-                    if (isSleeping) {
-                        setSleeping(false);
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
+        if (currentState != PetState.TIRED) {
+            return;
         }
+        
+        // 檢查其他危急狀態
+        for (PetState state : stateScores.keySet()) {
+            if (state != PetState.TIRED && stateScores.get(state) >= MAX_SCORE) {
+                String message = String.format("Please %s your pet first!", 
+                    PetAction.getActionForState(state).toString().toLowerCase());
+                throw new IllegalStateException(message);
+            }
+        }
+        
+        // 顯示happy狀態
+        showHappyState();
+        
+        // 進入睡眠狀態
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000); // 5秒後進入睡眠
+                setSleeping(true);
+                resetState(PetState.TIRED);
+                currentStateObject = new SleepingState(this);
+                
+                Thread.sleep(60000); // 睡眠1分鐘
+                if (isSleeping) {
+                    setSleeping(false);
+                    updateCurrentState();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
     
     // Getters and setters with validation
@@ -173,7 +199,13 @@ public class Pet {
     
     public boolean isSleeping() { return isSleeping; }
     
-    public void setSleeping(boolean sleeping) { this.isSleeping = sleeping; }
+    public void setSleeping(boolean sleeping) {
+        if (sleeping && !this.isSleeping) {
+            // 開始睡眠時記錄間
+            this.lastActionTime = System.currentTimeMillis();
+        }
+        this.isSleeping = sleeping;
+    }
     
     public long getLastActionTime() { return lastActionTime; }
     
