@@ -153,7 +153,7 @@ public class Pet {
         
         new Thread(() -> {
             try {
-                Thread.sleep(3000);  // 从5秒改为3秒
+                Thread.sleep(2000);  // 从3秒改为2秒
                 if (!isSleeping) {
                     updateCurrentState();
                 }
