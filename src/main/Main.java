@@ -4,6 +4,7 @@ import model.Pet;
 import model.TimeManager;
 import view.PetView;
 import controller.PetController;
+import javax.swing.SwingUtilities;
 
 /**
  * Main entry point for the Virtual Pet application.
@@ -21,6 +22,13 @@ public class Main {
         TimeManager timeManager = new TimeManager(pet);
         PetView view = new PetView();
         PetController controller = new PetController(pet, view);
+        
+        // Set up update listener
+        timeManager.setUpdateListener(() -> {
+            SwingUtilities.invokeLater(() -> {
+                controller.updateView();
+            });
+        });
         
         // Start GUI on Event Dispatch Thread
         javax.swing.SwingUtilities.invokeLater(() -> {

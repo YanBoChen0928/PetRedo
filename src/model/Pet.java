@@ -27,8 +27,8 @@ public class Pet {
     // Constants for pet attributes
     public static final int MAX_HEALTH = 100;
     public static final int MAX_SCORE = 10;
-    public static final int HEALTH_DECREASE_RATE = 5;
-    public static final int HEALTH_RECOVERY_RATE = 15;
+    public static final int HEALTH_DECREASE_RATE = 2;
+    public static final int HEALTH_RECOVERY_RATE = 5;
     
     /**
      * Creates a new pet with default values.
@@ -160,18 +160,20 @@ public class Pet {
             }
         }
         
-        // 顯示happy狀態
-        showHappyState();
-        
         // 進入睡眠狀態
         new Thread(() -> {
             try {
-                Thread.sleep(5000); // 5秒後進入睡眠
+                // 先显示 happy 状态 5 秒
+                currentStateObject = new HappyState(this);
+                Thread.sleep(5000);
+                
+                // 然后进入睡眠状态
                 setSleeping(true);
                 resetState(PetState.TIRED);
                 currentStateObject = new SleepingState(this);
                 
-                Thread.sleep(60000); // 睡眠1分鐘
+                // 一分钟后自动醒来（除非手动唤醒）
+                Thread.sleep(60000);
                 if (isSleeping) {
                     setSleeping(false);
                     updateCurrentState();

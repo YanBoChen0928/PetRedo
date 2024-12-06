@@ -32,7 +32,7 @@ public class PetView extends JFrame {
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private static final String[] STATES = {
-        "normal", "hungry", "dirty", "tired", "bored", "sleeping", "happy"
+        "normal", "hungry", "dirty", "tired", "bored", "sleeping", "happy", "dead"
     };
     private final Map<String, JLabel> stateLabels = new HashMap<>();
     
@@ -100,15 +100,15 @@ public class PetView extends JFrame {
         
         feedButton = new JButton("Feed");
         cleanButton = new JButton("Clean");
-        playButton = new JButton("Play");
         restButton = new JButton("Rest");
+        playButton = new JButton("Play");
         newPetButton = new JButton("New Pet");
         newPetButton.setEnabled(false);
         
         buttonPanel.add(feedButton);
         buttonPanel.add(cleanButton);
-        buttonPanel.add(playButton);
         buttonPanel.add(restButton);
+        buttonPanel.add(playButton);
         buttonPanel.add(newPetButton);
         
         // 組裝主界面
@@ -164,6 +164,7 @@ public class PetView extends JFrame {
     public void updateHealth(int health) {
         healthLabel.setText("Health: " + health);
         if (health <= 0) {
+            updatePetIcon("dead");
             newPetButton.setEnabled(true);
             disableActionButtons();
         }
@@ -206,6 +207,11 @@ public class PetView extends JFrame {
     }
     
     public void setNewPetButtonListener(ActionListener listener) {
+        // 移除所有现有的监听器
+        for (ActionListener al : newPetButton.getActionListeners()) {
+            newPetButton.removeActionListener(al);
+        }
+        // 添加新的监听器
         newPetButton.addActionListener(listener);
     }
     

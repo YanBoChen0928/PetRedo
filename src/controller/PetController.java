@@ -54,10 +54,12 @@ public class PetController {
                 pet.setSleeping(false);
                 view.updateRestButton(false);
                 view.appendMessage("Your pet woke up!");
+                updateView();
             } else if (pet.getCurrentState() == PetState.TIRED) {
                 pet.performAction(PetAction.REST);
                 view.updateRestButton(true);
-                view.appendMessage("Your pet is sleeping.");
+                view.appendMessage("Your pet is happy and will sleep soon.");
+                updateView();
             } else {
                 view.appendMessage("Your pet is not tired!");
             }
@@ -69,14 +71,30 @@ public class PetController {
     private void handleNewPet() {
         if (pet.getHealth() <= 0) {
             pet.setHealth(Pet.MAX_HEALTH);
+            for (PetState state : PetState.values()) {
+                if (state != PetState.NORMAL) {
+                    pet.resetState(state);
+                }
+            }
+            pet.setSleeping(false);
             view.enableActionButtons();
+            view.updateRestButton(false);
+            view.updatePetIcon("normal");
             updateView();
             view.appendMessage("Created a new pet!");
         }
     }
 
-    private void updateView() {
+    public void updateView() {
         view.updateHealth(pet.getHealth());
+        
+        if (pet.getHealth() <= 0) {
+            view.updateState("DEAD");
+            view.updatePetIcon("dead");
+            view.appendMessage("Your pet has died. Please create a new pet.");
+            return;
+        }
+        
         view.updateState(pet.getCurrentState().toString());
         view.updatePetIcon(pet.getCurrentStateObject().getStateIcon());
 

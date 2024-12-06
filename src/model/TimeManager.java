@@ -12,6 +12,7 @@ public class TimeManager {
     private final Pet pet;
     private final ScheduledExecutorService scheduler;
     private long sleepStartTime;  // 添加睡眠開始時間
+    private Runnable updateListener;  // 添加更新监听器
     
     // One game day equals 1 minute real time
     private static final long DAY_DURATION = 60_000;
@@ -27,6 +28,16 @@ public class TimeManager {
         initializeTimers();
     }
     
+    public void setUpdateListener(Runnable listener) {
+        this.updateListener = listener;
+    }
+    
+    private void notifyUpdate() {
+        if (updateListener != null) {
+            updateListener.run();
+        }
+    }
+    
     /**
      * Sets up periodic tasks for updating pet status.
      * - Health updates every second
@@ -34,13 +45,31 @@ public class TimeManager {
      */
     private void initializeTimers() {
         // Health update every second
-        scheduler.scheduleAtFixedRate(this::updateHealth, 1, 1, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> {
+            updateHealth();
+            notifyUpdate();
+        }, 1, 1, TimeUnit.SECONDS);
         
         // State updates at different intervals
-        scheduler.scheduleAtFixedRate(() -> updateState(PetState.HUNGRY), 0, 2, TimeUnit.SECONDS);
-        scheduler.scheduleAtFixedRate(() -> updateState(PetState.DIRTY), 0, 10, TimeUnit.SECONDS);
-        scheduler.scheduleAtFixedRate(() -> updateState(PetState.TIRED), 0, 10, TimeUnit.SECONDS);
-        scheduler.scheduleAtFixedRate(() -> updateState(PetState.BORED), 0, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> {
+            updateState(PetState.HUNGRY);
+            notifyUpdate();
+        }, 0, 5, TimeUnit.SECONDS);
+        
+        scheduler.scheduleAtFixedRate(() -> {
+            updateState(PetState.DIRTY);
+            notifyUpdate();
+        }, 0, 15, TimeUnit.SECONDS);
+        
+        scheduler.scheduleAtFixedRate(() -> {
+            updateState(PetState.TIRED);
+            notifyUpdate();
+        }, 0, 15, TimeUnit.SECONDS);
+        
+        scheduler.scheduleAtFixedRate(() -> {
+            updateState(PetState.BORED);
+            notifyUpdate();
+        }, 0, 10, TimeUnit.SECONDS);
         
         // 檢查睡眠時間
         scheduler.scheduleAtFixedRate(this::checkSleepTime, 0, 1, TimeUnit.SECONDS);
@@ -53,6 +82,11 @@ public class TimeManager {
      * - Increases health while sleeping if below maximum
      */
     private void updateHealth() {
+        // 如果已经死亡，不再更新健康值
+        if (pet.getHealth() <= 0) {
+            return;
+        }
+
         if (pet.isSleeping()) {
             if (pet.getHealth() < Pet.MAX_HEALTH) {
                 pet.setHealth(Math.min(pet.getHealth() + Pet.HEALTH_RECOVERY_RATE, Pet.MAX_HEALTH));
@@ -73,8 +107,9 @@ public class TimeManager {
      * @param state The state to update
      */
     private void updateState(PetState state) {
-        if (pet.isSleeping()) {
-            return; // 睡眠時不更新任何狀態
+        // 如果已经死亡或睡眠中，不更新状态
+        if (pet.getHealth() <= 0 || pet.isSleeping()) {
+            return;
         }
         
         int currentScore = pet.getStateScore(state);
