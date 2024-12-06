@@ -127,6 +127,15 @@ public class Pet {
             return;
         }
         
+        // 检查是否在30秒内重复执行同一动作
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastActionTime < 30000 && 
+            getStateScore(action.getTargetState()) == 0) {
+            throw new IllegalStateException(
+                String.format("Your pet doesn't need to %s now!", 
+                action.toString().toLowerCase()));
+        }
+        
         PetState targetState = action.getTargetState();
         
         if (action == PetAction.REST) {
@@ -144,8 +153,8 @@ public class Pet {
         
         new Thread(() -> {
             try {
-                Thread.sleep(5000);
-                if (!isSleeping) {  // 只有在非睡眠状态才更新
+                Thread.sleep(3000);  // 从5秒改为3秒
+                if (!isSleeping) {
                     updateCurrentState();
                 }
             } catch (InterruptedException e) {

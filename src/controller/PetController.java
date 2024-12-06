@@ -42,7 +42,13 @@ public class PetController {
         try {
             pet.performAction(action);
             updateView();
-            view.appendMessage("Performed " + action.toString().toLowerCase());
+            if (pet.getStateScore(action.getTargetState()) == 0) {
+                view.appendMessage(String.format("Your pet is happy after %s!", 
+                    action.toString().toLowerCase()));
+            } else {
+                view.appendMessage(String.format("Performed %s.", 
+                    action.toString().toLowerCase()));
+            }
         } catch (IllegalStateException e) {
             view.appendMessage(e.getMessage());
         }
@@ -55,7 +61,18 @@ public class PetController {
                 view.updateRestButton(false);
                 view.appendMessage("Your pet woke up!");
                 updateView();
-            } else if (pet.getCurrentState() == PetState.TIRED) {
+                return;
+            }
+            
+            PetState currentState = pet.getCurrentState();
+            if (currentState != PetState.NORMAL && currentState != PetState.TIRED) {
+                PetAction requiredAction = PetAction.getActionForState(currentState);
+                view.appendMessage(String.format("Please %s your pet first!", 
+                    requiredAction.toString().toLowerCase()));
+                return;
+            }
+            
+            if (currentState == PetState.TIRED) {
                 pet.performAction(PetAction.REST);
                 view.updateRestButton(true);
                 view.appendMessage("Your pet is sleeping.");

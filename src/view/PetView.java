@@ -105,11 +105,11 @@ public class PetView extends JFrame {
         newPetButton = new JButton("New Pet");
         newPetButton.setEnabled(false);
         
+        buttonPanel.add(newPetButton);
         buttonPanel.add(feedButton);
         buttonPanel.add(cleanButton);
         buttonPanel.add(restButton);
         buttonPanel.add(playButton);
-        buttonPanel.add(newPetButton);
         
         // 組裝主界面
         add(leftPanel, BorderLayout.WEST);
