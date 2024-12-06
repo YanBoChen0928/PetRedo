@@ -61,7 +61,7 @@ public class PetController {
         // Check if action is needed
         if (pet.getStateScore(action.getTargetState()) < Pet.MAX_SCORE) {
             long timeSinceLastAction = System.currentTimeMillis() - pet.getLastActionTime();
-            if (timeSinceLastAction < 600_000) { // 10 minutes
+            if (timeSinceLastAction < 60_000) { // 1 minutes
                 view.appendMessage("There is no need to " + action.toString().toLowerCase() + " now.");
                 return;
             }

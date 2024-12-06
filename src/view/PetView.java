@@ -1,5 +1,6 @@
 package view;
 
+import java.net.URL;
 import model.Pet;
 import model.PetAction;
 import model.PetState;
@@ -109,7 +110,12 @@ public class PetView extends JFrame {
      * @param iconPath Path to the icon resource
      */
     public void updatePetIcon(String iconPath) {
-        ImageIcon icon = new ImageIcon(getClass().getResource("/pet_normal.png"));
+        ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("images/" + iconPath));
+        //ToDo: Check if icon is null
+        //URL resource = getClass().getResource("/images/" + iconPath);
+        if (iconPath == null) {
+            throw new IllegalArgumentException("Image not found: /images/" + iconPath);
+        }
         petIconLabel.setIcon(icon);
     }
     
