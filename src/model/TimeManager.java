@@ -82,7 +82,6 @@ public class TimeManager {
      * - Increases health while sleeping if below maximum
      */
     private void updateHealth() {
-        // 如果已经死亡，不再更新健康值
         if (pet.getHealth() <= 0) {
             return;
         }
@@ -107,7 +106,6 @@ public class TimeManager {
      * @param state The state to update
      */
     private void updateState(PetState state) {
-        // 如果已经死亡或睡眠中，不更新状态
         if (pet.getHealth() <= 0 || pet.isSleeping()) {
             return;
         }
@@ -131,9 +129,9 @@ public class TimeManager {
     private void checkSleepTime() {
         if (pet.isSleeping()) {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - sleepStartTime >= 60_000) {
+            if (currentTime - sleepStartTime >= 60000) {
                 pet.setSleeping(false);
-                pet.updateCurrentState();
+                pet.wakeUp();
             }
         }
     }

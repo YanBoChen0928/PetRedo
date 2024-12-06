@@ -51,14 +51,14 @@ public class PetController {
     private void handleRestAction() {
         try {
             if (pet.isSleeping()) {
-                pet.setSleeping(false);
+                pet.wakeUp();
                 view.updateRestButton(false);
                 view.appendMessage("Your pet woke up!");
                 updateView();
             } else if (pet.getCurrentState() == PetState.TIRED) {
                 pet.performAction(PetAction.REST);
                 view.updateRestButton(true);
-                view.appendMessage("Your pet is happy and will sleep soon.");
+                view.appendMessage("Your pet is sleeping.");
                 updateView();
             } else {
                 view.appendMessage("Your pet is not tired!");

@@ -20,6 +20,7 @@ public class Main {
         // Initialize MVC components
         Pet pet = new Pet();
         TimeManager timeManager = new TimeManager(pet);
+        pet.setTimeManager(timeManager);
         PetView view = new PetView();
         PetController controller = new PetController(pet, view);
         

@@ -30,6 +30,8 @@ public class Pet {
     public static final int HEALTH_DECREASE_RATE = 2;
     public static final int HEALTH_RECOVERY_RATE = 5;
     
+    private TimeManager timeManager;  // 添加 TimeManager 引用
+    
     /**
      * Creates a new pet with default values.
      * Initial health is set to maximum, state is normal, and all state scores are 0.
@@ -41,6 +43,10 @@ public class Pet {
         this.isSleeping = false;
         initializeStates();
         this.currentStateObject = new NormalState(this);
+    }
+    
+    public void setTimeManager(TimeManager timeManager) {
+        this.timeManager = timeManager;
     }
     
     /**
@@ -139,11 +145,28 @@ public class Pet {
         new Thread(() -> {
             try {
                 Thread.sleep(5000);
-                updateCurrentState();
+                if (!isSleeping) {  // 只有在非睡眠状态才更新
+                    updateCurrentState();
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }).start();
+    }
+    
+    /**
+     * 处理宠物从睡眠状态醒来的逻辑
+     */
+    public void wakeUp() {
+        if (isSleeping) {
+            setSleeping(false);
+            currentState = PetState.NORMAL;
+            currentStateObject = new NormalState(this);
+            // 醒来时发出通知，让 Controller 能够更新界面和显示消息
+            if (currentStateObject != null) {
+                currentStateObject.onWakeUp();
+            }
+        }
     }
     
     private void handleRestAction() {
@@ -151,7 +174,7 @@ public class Pet {
             return;
         }
         
-        // 檢查其他危急狀態
+        // 检查其他危急状态
         for (PetState state : stateScores.keySet()) {
             if (state != PetState.TIRED && stateScores.get(state) >= MAX_SCORE) {
                 String message = String.format("Please %s your pet first!", 
@@ -160,28 +183,10 @@ public class Pet {
             }
         }
         
-        // 進入睡眠狀態
-        new Thread(() -> {
-            try {
-                // 先显示 happy 状态 5 秒
-                currentStateObject = new HappyState(this);
-                Thread.sleep(5000);
-                
-                // 然后进入睡眠状态
-                setSleeping(true);
-                resetState(PetState.TIRED);
-                currentStateObject = new SleepingState(this);
-                
-                // 一分钟后自动醒来（除非手动唤醒）
-                Thread.sleep(60000);
-                if (isSleeping) {
-                    setSleeping(false);
-                    updateCurrentState();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+        // 直接进入睡眠状态
+        setSleeping(true);
+        resetState(PetState.TIRED);
+        currentStateObject = new SleepingState(this);
     }
     
     // Getters and setters with validation
@@ -203,8 +208,10 @@ public class Pet {
     
     public void setSleeping(boolean sleeping) {
         if (sleeping && !this.isSleeping) {
-            // 開始睡眠時記錄間
             this.lastActionTime = System.currentTimeMillis();
+            if (timeManager != null) {
+                timeManager.startSleeping();
+            }
         }
         this.isSleeping = sleeping;
     }

@@ -18,4 +18,11 @@ public abstract class PetStateBase {
     public PetState getStateType() {
         return stateType;
     }
+    
+    /**
+     * 当宠物从睡眠状态醒来时调用
+     */
+    public void onWakeUp() {
+        // 默认实现为空，子类可以根据需要重写
+    }
 } 
