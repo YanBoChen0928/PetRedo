@@ -54,25 +54,25 @@ public class TimeManager {
         scheduler.scheduleAtFixedRate(() -> {
             updateState(PetState.HUNGRY);
             notifyUpdate();
-        }, 0, 5, TimeUnit.SECONDS);
+        }, 5 , 5, TimeUnit.SECONDS);
         
         scheduler.scheduleAtFixedRate(() -> {
             updateState(PetState.DIRTY);
             notifyUpdate();
-        }, 0, 15, TimeUnit.SECONDS);
+        }, 15, 15, TimeUnit.SECONDS);
         
         scheduler.scheduleAtFixedRate(() -> {
             updateState(PetState.TIRED);
             notifyUpdate();
-        }, 0, 15, TimeUnit.SECONDS);
+        }, 15, 15, TimeUnit.SECONDS);
         
         scheduler.scheduleAtFixedRate(() -> {
             updateState(PetState.BORED);
             notifyUpdate();
-        }, 0, 10, TimeUnit.SECONDS);
+        }, 10, 10, TimeUnit.SECONDS);
         
         // 檢查睡眠時間
-        scheduler.scheduleAtFixedRate(this::checkSleepTime, 0, 1, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::checkSleepTime, 1, 1, TimeUnit.SECONDS);
     }
     
     /**

@@ -124,7 +124,9 @@ public class Pet {
      */
     public void performAction(PetAction action) {
         if (isSleeping && action != PetAction.REST) {
-            return;
+            throw new IllegalStateException("Your pet is sleeping now! Can't perform actions.");
+            // ToDo: penidng for check
+            // return;
         }
         
         // 检查是否在30秒内重复执行同一动作

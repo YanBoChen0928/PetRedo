@@ -1,4 +1,4 @@
-package test.model;
+package model;
 
 import model.Pet;
 import model.PetState;
@@ -38,9 +38,9 @@ public class TimeManagerTest {
         // Set pet to critical hunger state
         pet.updateState(PetState.HUNGRY, 10);
         int initialHealth = pet.getHealth();
-        // Wait for health decrease (-5 per second)
+        // Wait for health decrease (-2 per second)
         Thread.sleep(1100);
-        org.junit.Assert.assertTrue(pet.getHealth() <= initialHealth - 5);
+        org.junit.Assert.assertTrue(pet.getHealth() <= initialHealth - 2);
     }
 
     /**
@@ -52,9 +52,9 @@ public class TimeManagerTest {
     public void testHealthIncrease() throws InterruptedException {
         // Set initial health to test recovery
         pet.setHealth(50);
-        // Wait for health increase (+15 per second)
+        // Wait for health increase (+5 per second)
         Thread.sleep(1100);
-        org.junit.Assert.assertTrue(pet.getHealth() >= 65);
+        org.junit.Assert.assertTrue(pet.getHealth() >= 55);
     }
     
     /**
@@ -67,7 +67,7 @@ public class TimeManagerTest {
         // Record initial hunger score
         int initialScore = pet.getStateScore(PetState.HUNGRY);
         // Wait for 2 seconds (+3 points)
-        Thread.sleep(2100);
+        Thread.sleep(5100);
         org.junit.Assert.assertTrue(pet.getStateScore(PetState.HUNGRY) >= initialScore + 3);
     }
     
@@ -80,8 +80,8 @@ public class TimeManagerTest {
     public void testCleanlinessDecrease() throws InterruptedException {
         // Record initial cleanliness score
         int initialScore = pet.getStateScore(PetState.DIRTY);
-        // Wait for 10 seconds (+5 points)
-        Thread.sleep(10100);
+        // Wait for 15 seconds (+5 points)
+        Thread.sleep(15100);
         org.junit.Assert.assertTrue(pet.getStateScore(PetState.DIRTY) >= initialScore + 5);
     }
     
@@ -94,8 +94,8 @@ public class TimeManagerTest {
     public void testTirednessIncrease() throws InterruptedException {
         // Record initial tiredness score
         int initialScore = pet.getStateScore(PetState.TIRED);
-        // Wait for 10 seconds (+4 points)
-        Thread.sleep(10100);
+        // Wait for 15 seconds (+4 points)
+        Thread.sleep(15100);
         org.junit.Assert.assertTrue(pet.getStateScore(PetState.TIRED) >= initialScore + 4);
     }
     
@@ -108,8 +108,8 @@ public class TimeManagerTest {
     public void testBoredIncrease() throws InterruptedException {
         // Record initial boredom score
         int initialScore = pet.getStateScore(PetState.BORED);
-        // Wait for 5 seconds (+2 points)
-        Thread.sleep(5100);
+        // Wait for 10 seconds (+2 points)
+        Thread.sleep(10100);
         org.junit.Assert.assertTrue(pet.getStateScore(PetState.BORED) >= initialScore + 2);
     }
     
@@ -120,13 +120,19 @@ public class TimeManagerTest {
      */
     @org.junit.Test
     public void testSleepingStateFreeze() throws InterruptedException {
+        // Record hunger score before sleep
+        int hungryScore = pet.getStateScore(PetState.HUNGRY);
+        // confirm pet and TimeManager are related to each other !? important
+        pet.setTimeManager(timeManager);
         // Put pet to sleep
         pet.updateState(PetState.TIRED, 10);
         pet.performAction(PetAction.REST);
-        // Record hunger score before sleep
-        int hungryScore = pet.getStateScore(PetState.HUNGRY);
-        // Wait and verify score hasn't changed
-        Thread.sleep(2100);
-        org.junit.Assert.assertEquals(hungryScore, pet.getStateScore(PetState.HUNGRY));
+        // confirm pet is sleeping
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        // Wait and verify score hasn't changed,
+        // initially if no sleep should increase by 3 points every 5 seconds
+        Thread.sleep(15100);
+        org.junit.Assert.assertEquals(
+            hungryScore, pet.getStateScore(PetState.HUNGRY));
     }
 } 

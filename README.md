@@ -77,15 +77,18 @@ Key implementation details can be found in the following files:
 
 2. State Mechanics
    - State update frequency:
-     * Hunger: +3 points every 2 seconds
-     * Cleanliness: +5 points every 10 seconds
-     * Tiredness: +4 points every 10 seconds
-     * Boredom: +2 points every 5 seconds
+     * Hunger: +3 points every 5 seconds
+     * Cleanliness: +5 points every 15 seconds
+     * Tiredness: +4 points every 15 seconds
+     * Boredom: +2 points every 10 seconds
+   - Updates start when game begins and pass each state's interval
+   - States update at fixed intervals
+   - Multiple states can change simultaneously
 
 3. Health Mechanics
    - Initial value: 100
-   - Critical state decrease rate: -5 per second
-   - Recovery rate: +15 per second (no critical states)
+   - Critical state decrease rate: -2 per second
+   - Recovery rate: +5 per second (no critical states)
 
 ## Limitations
 1. Functional Limitations
@@ -128,6 +131,7 @@ Key implementation details can be found in the following files:
    - Command to run: `java -jar VirtualPet.jar`
    - The GUI will launch automatically
    - No command-line arguments needed
+   - Click the X button in the top-left corner of the Virtual Pet window to close the application
 
 3. Development Environment
    - JDK 11 is used for development
