@@ -1,91 +1,135 @@
-# 虛擬寵物遊戲 (Virtual Pet Game)
+# Virtual Pet Game
 
-## 關於/概述
-在現代快節奏的生活中，許多人渴望擁有寵物卻苦於沒有時間照顧。本虛擬寵物遊戲提供了一個輕鬆的方式來體驗養寵物的樂趣。遊戲採用Java語言開發，基於MVC架構設計，通過即時狀態監控和互動機制，模擬真實寵物的日常照顧過程。玩家需要適時關注寵物的各種需求（飢餓、清潔、疲勞、娛樂等），並採取相應的照顧措施，這不僅能帶來娛樂，還能培養責任感和時間管理能力。
+## Overview
+In today's fast-paced world, many people desire to have pets but struggle with the time commitment required for pet care. This virtual pet game offers a lightweight way to experience the joy of pet ownership. Developed in Java using MVC architecture, the game simulates real pet care through real-time state monitoring and interaction mechanisms. Players need to attend to various pet needs (hunger, cleanliness, tiredness, entertainment) and take appropriate care measures, fostering both entertainment and a sense of responsibility.
 
-## 功能列表
-1. 狀態監控系統
-   - 健康值即時監控（0-100）
-   - 四種基礎需求指標（0-10）：飢餓度、清潔度、疲勞度、無聊度
-   - 狀態自動衰減機制
+## Features
+1. State Monitoring System
+   - Real-time health monitoring (0-100)
+   - Four basic need indicators (0-10): Hunger, Cleanliness, Tiredness, Boredom
+   - Automatic state degradation system
    
-2. 互動功能
-   - 餵食（Feed）：降低飢餓度
-   - 清潔（Clean）：提高清潔度
-   - 玩耍（Play）：減少無聊度
-   - 休息（Rest）：降低疲勞度
+2. Interactive Functions
+   - Feed: Reduces hunger
+   - Clean: Improves cleanliness
+   - Play: Reduces boredom
+   - Rest: Reduces tiredness
    
-3. 特殊機制
-   - 睡眠系統（自動/手動喚醒）
-   - 健康值自動恢復（條件：無危急狀態）
-   - 多重狀態優先級管理
-   - 寵物重生功能
+3. Special Mechanics
+   - Sleep system (automatic/manual wake-up)
+   - Automatic health recovery (condition: no critical states)
+   - Multi-state priority management
+   - Pet revival functionality
 
-## 如何運行
-1. 確保系統已安裝Java Runtime Environment (JRE) 8或更高版本
-2. 下載VirtualPet.jar文件
-3. 打開終端機，導航到jar文件所在目錄
-4. 執行命令：
+## Running the Application
+1. Ensure Java Runtime Environment (JRE) 11 or higher is installed
+2. Download VirtualPet.jar file
+3. Open terminal and navigate to the jar file directory
+4. Execute command:
    ```
    java -jar VirtualPet.jar
    ```
-   - 無需額外參數
-   - 程序將自動啟動圖形界面
+   - No additional parameters needed
+   - GUI will launch automatically
 
-## 使用說明
-1. 基礎操作
-   - 點擊界面上的按鈕執行相應操作
-   - 觀察狀態欄了解寵物當前需求
-   - 查看消息欄獲取即時反饋
+## Usage Instructions
+1. Basic Operations
+   - Click buttons to perform corresponding actions
+   - Monitor status bar for current pet needs
+   - Check message area for real-time feedback
 
-2. 狀態管理
-   - 正常狀態：所有指標低於10
-   - 危急狀態：任一指標達到10
-   - 死亡條件：健康值降至0
+2. State Management
+   - Normal state: All indicators below 10
+   - Critical state: Any indicator reaches 10
+   - State Priority: Based on weight system (Dirty > Tired > Hungry > Bored)
+   - Death condition: Health drops to 0
 
-3. 特殊功能
-   - 睡眠模式：
-     * 進入條件：僅疲勞狀態時可用
-     * 自動喚醒：1分鐘後
-     * 手動喚醒：點擊"Wake Up"按鈕
+3. Special Features
+   - Sleep mode:
+     * Entry condition: Only available in tired state
+     * Auto wake-up: After 1 minute
+     * Manual wake-up: Click "Wake Up" button
    
-   - 重生功能：
-     * 觸發條件：寵物死亡後
-     * 操作方式：點擊"New Pet"按鈕
+   - Revival function:
+     * Trigger condition: After pet death
+     * Operation: Click "New Pet" button
 
-## 設計/模型變更
-版本1.0（當前版本）
-- 初始發布
-- 基礎功能實現
-- MVC架構設計
+## Implementation References
+Key implementation details can be found in the following files:
 
-## 假設條件
-1. 時間設定
-   - 遊戲時間：1天 = 現實1分鐘（60,000毫秒）
-   - 基本時間單位：1秒
+1. State Management:
+   - Pet.java:88-92:updateState()
+   - PetState.java:1-23:enum PetState
+   - TimeManagerTest.java:63-71:testHealthDecrease()
 
-2. 狀態機制
-   - 狀態更新頻率：
-     * 飢餓：每2秒 +3分
-     * 清潔：每10秒 +5分
-     * 疲勞：每10秒 +4分
-     * 無聊：每5秒 +2分
+2. Action Handling:
+   - PetController.java:37-58:handleAction()
+   - Pet.java:94-102:performAction()
 
-3. 健康值機制
-   - 初始值：100
-   - 危急狀態下降速度：每秒-5
-   - 恢復速度：每秒+15（無危急狀態時）
+3. Time Management:
+   - TimeManager.java:15-25:run()
+   - TimeManagerTest.java:82-92:testHealthIncrease()
 
-## 限制
-1. 功能限制
-   - 同時只能處理一種狀態
-   - 非危急狀態下重複操作會被限制
-   - 睡眠狀態下無法執行其他操作
+## Assumptions
+1. Time Settings
+   - Game time: 1 day = 1 real minute (60,000ms)
+   - Base time unit: 1 second
 
-2. 技術限制
-   - 僅支持單寵物
-   - 不支持存檔功能
-   - 無自定義寵物外觀功能
+2. State Mechanics
+   - State update frequency:
+     * Hunger: +3 points every 2 seconds
+     * Cleanliness: +5 points every 10 seconds
+     * Tiredness: +4 points every 10 seconds
+     * Boredom: +2 points every 5 seconds
 
-## 引用
-本項目為原創設計，在開發過程中未使用任何外部資源或參考材料。所有功能和機制均為自主開發，無需額外引用說明。 
+3. Health Mechanics
+   - Initial value: 100
+   - Critical state decrease rate: -5 per second
+   - Recovery rate: +15 per second (no critical states)
+
+## Limitations
+1. Functional Limitations
+   - States are managed by a priority system based on weights
+   - Actions can be performed as long as the state score is not 0
+   - No actions allowed during sleep state except wake up
+   - Sleep mode is only available when the pet is tired
+
+2. Technical Limitations
+   - Single pet support only
+   - No save functionality
+   - No custom pet appearance options
+
+## Citations
+1. Image Resources:
+   - Black shiba inu icons created by Chanut-is-Industries - Flaticon
+   - Source: <a href="https://www.flaticon.com/free-icons/black-shiba-inu" title="black shiba inu icons">Black shiba inu icons created by Chanut-is-Industries - Flaticon</a>
+
+2. Development:
+   This project is an original design. All functionalities and mechanisms are independently developed without external references except for the pet images mentioned above.
+
+## JAR File Instructions
+1. Building the JAR
+   - The project is developed with JDK 11
+   - Compile and build with Java 11 compatibility:
+     * Set source compatibility to Java 11
+     * Set target compatibility to Java 11
+   - Include all required resources in the JAR:
+     * All class files
+     * Images directory and its contents
+     * Any configuration files
+   - Set the main class in the manifest file:
+     ```
+     Main-Class: main.Main
+     ```
+
+2. Running the JAR
+   - Minimum requirement: Java Runtime Environment (JRE) 11
+   - Recommended: Latest JRE 11.x version
+   - Command to run: `java -jar VirtualPet.jar`
+   - The GUI will launch automatically
+   - No command-line arguments needed
+
+3. Development Environment
+   - JDK 11 is used for development
+   - All dependencies are included in the JAR
+   - No external runtime dependencies required

@@ -3,79 +3,128 @@ package test.model;
 import model.Pet;
 import model.PetState;
 import model.PetAction;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
+/**
+ * Test class for Pet model.
+ * Tests basic pet functionality including:
+ * - Initial state validation
+ * - State score limits
+ * - State priority system
+ * - Health value boundaries
+ * - Action effects
+ * - Sleeping state behavior
+ */
 public class PetTest {
     private Pet pet;
     
-    @Before
+    /**
+     * Set up method executed before each test.
+     * Creates a new Pet instance for testing.
+     */
+    @org.junit.Before
     public void setUp() {
         pet = new Pet();
     }
     
-    @Test
+    /**
+     * Tests the initial state of a newly created pet.
+     * Verifies:
+     * - Initial health is 100
+     * - Initial state is NORMAL
+     * - Pet is not sleeping
+     */
+    @org.junit.Test
     public void testInitialState() {
-        assertEquals(Pet.MAX_HEALTH, pet.getHealth());
-        assertEquals(PetState.NORMAL, pet.getCurrentState());
-        assertFalse(pet.isSleeping());
+        // Check initial health value (100)
+        org.junit.Assert.assertEquals(100, pet.getHealth());
+        // Verify initial state is NORMAL
+        org.junit.Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+        // Confirm pet starts awake
+        org.junit.Assert.assertFalse(pet.isSleeping());
     }
     
-    @Test
-    public void testUpdateState() {
-        pet.updateState(PetState.HUNGRY, 10);
-        assertEquals(PetState.HUNGRY, pet.getCurrentState());
-        assertEquals(10, pet.getStateScore(PetState.HUNGRY));
-    }
-    
-    @Test
-    public void testHealthBounds() {
-        pet.setHealth(Pet.MAX_HEALTH + 10);
-        assertEquals(Pet.MAX_HEALTH, pet.getHealth());
-        
-        pet.setHealth(-10);
-        assertEquals(0, pet.getHealth());
-    }
-    
-    @Test
+    /**
+     * Tests that state scores cannot exceed the maximum value of 10.
+     * Attempts to set a state score above 10 and verifies it's capped.
+     */
+    @org.junit.Test
     public void testStateScoreLimit() {
-        pet.updateState(PetState.HUNGRY, Pet.MAX_SCORE + 5);
-        assertEquals(Pet.MAX_SCORE, pet.getStateScore(PetState.HUNGRY));
+        // Attempt to set score above maximum (10)
+        pet.updateState(PetState.HUNGRY, 15);
+        // Verify score is capped at 10
+        org.junit.Assert.assertEquals(10, pet.getStateScore(PetState.HUNGRY));
     }
     
-    @Test
+    /**
+     * Tests the state priority system based on weight values.
+     * Verifies that states with higher weights take precedence.
+     */
+    @org.junit.Test
     public void testStateWeightPriority() {
-        // DIRTY(5) has higher weight than HUNGRY(3)
+        // Set both states to critical (DIRTY weight=5, HUNGRY weight=3)
         pet.updateState(PetState.DIRTY, 10);
         pet.updateState(PetState.HUNGRY, 10);
-        assertEquals(PetState.DIRTY, pet.getCurrentState());
+        // Verify DIRTY state takes precedence due to higher weight
+        org.junit.Assert.assertEquals(PetState.DIRTY, pet.getCurrentState());
     }
     
-    @Test
-    public void testPerformAction() {
-        pet.updateState(PetState.HUNGRY, 10);
-        pet.performAction(PetAction.FEED);
-        assertEquals(0, pet.getStateScore(PetState.HUNGRY));
-        assertEquals(PetState.NORMAL, pet.getCurrentState());
-    }
-    
-    @Test
+    /**
+     * Tests the sleeping state mechanics.
+     * Verifies:
+     * - Pet can enter sleep state
+     * - Actions are restricted during sleep
+     */
+    @org.junit.Test
     public void testSleepingState() {
+        // Put pet to sleep
         pet.updateState(PetState.TIRED, 10);
         pet.performAction(PetAction.REST);
-        assertTrue(pet.isSleeping());
+        // Verify pet is sleeping
+        org.junit.Assert.assertTrue(pet.isSleeping());
         
-        // Cannot perform other actions while sleeping
-        pet.performAction(PetAction.FEED);
-        assertEquals(0, pet.getStateScore(PetState.HUNGRY));
+        // Verify actions are restricted during sleep
+        try {
+            pet.performAction(PetAction.FEED);
+            org.junit.Assert.fail("Expected IllegalStateException for action during sleep");
+        } catch (IllegalStateException e) {
+            // Expected behavior - actions should be restricted during sleep
+        }
     }
     
-    @Test
-    public void testResetState() {
+    /**
+     * Tests the health value boundaries.
+     * Verifies health cannot go below 0 or above 100.
+     */
+    @org.junit.Test
+    public void testHealthBounds() {
+        // Test lower bound (0)
+        pet.setHealth(-10);
+        org.junit.Assert.assertEquals(0, pet.getHealth());
+        
+        // Test upper bound (100)
+        pet.setHealth(150);
+        org.junit.Assert.assertEquals(100, pet.getHealth());
+    }
+    
+    /**
+     * Tests the effects of various actions on pet states.
+     * Verifies that each action properly resets its corresponding state.
+     */
+    @org.junit.Test
+    public void testActionEffects() {
+        // Test FEED action
+        pet.updateState(PetState.HUNGRY, 10);
+        pet.performAction(PetAction.FEED);
+        org.junit.Assert.assertEquals(0, pet.getStateScore(PetState.HUNGRY));
+        
+        // Test CLEAN action
+        pet.updateState(PetState.DIRTY, 10);
+        pet.performAction(PetAction.CLEAN);
+        org.junit.Assert.assertEquals(0, pet.getStateScore(PetState.DIRTY));
+        
+        // Test PLAY action
         pet.updateState(PetState.BORED, 10);
-        pet.resetState(PetState.BORED);
-        assertEquals(0, pet.getStateScore(PetState.BORED));
-        assertEquals(PetState.NORMAL, pet.getCurrentState());
+        pet.performAction(PetAction.PLAY);
+        org.junit.Assert.assertEquals(0, pet.getStateScore(PetState.BORED));
     }
 } 

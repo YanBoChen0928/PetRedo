@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="VirtualPet.jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/VirtualPet_jar</output-path>
+    <root id="archive" name="PetModelRedo.jar">
+      <element id="module-output" name="PetModelRedo" />
+    </root>
+  </artifact>
+</component>
