@@ -18,7 +18,14 @@ public abstract class PetStateBase {
     public PetState getStateType() {
         return stateType;
     }
-    
+
+    /**
+     * 获取与该状态关联的宠物对象
+     * @return 关联的Pet对象
+     */
+    public Pet getPet() {
+        return pet;
+    }
     /**
      * 当宠物从睡眠状态醒来时调用
      */

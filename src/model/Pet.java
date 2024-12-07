@@ -69,7 +69,8 @@ public class Pet {
      */
     public void updateState(PetState state, int score) {
         if (state != PetState.NORMAL) {
-            int currentScore = Math.min(score, MAX_SCORE);
+            //restrict the score to be within 0 and MAX_SCORE
+            int currentScore = Math.min(Math.max(score,0), MAX_SCORE);
             stateScores.put(state, currentScore);
             updateCurrentState();
         }

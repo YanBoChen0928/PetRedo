@@ -135,4 +135,37 @@ public class TimeManagerTest {
         org.junit.Assert.assertEquals(
             hungryScore, pet.getStateScore(PetState.HUNGRY));
     }
+    /**
+     * Tests that the update listener is properly notified of state changes.
+     * @throws InterruptedException if sleep is interrupted
+     */
+    @org.junit.Test
+    public void testUpdateListenerNotification() throws InterruptedException {
+        final boolean[] listenerCalled = {false};
+        timeManager.setUpdateListener(() -> listenerCalled[0] = true);
+        
+        // ensure pet and TimeManager are related to each other
+        pet.setTimeManager(timeManager);
+        
+        // set a state score close to critical
+        pet.updateState(PetState.HUNGRY, 9);  // set a number near the critical value
+        
+        // Wait for state update
+        Thread.sleep(3100);  // 等待3.1
+        
+        org.junit.Assert.assertTrue("Update listener should be called", listenerCalled[0]);
+    }
+
+    /**
+     * Tests that the TimeManager properly shuts down and stops updating states.
+     * @throws InterruptedException if sleep is interrupted
+     */
+    @org.junit.Test
+    public void testShutdownBehavior() throws InterruptedException {
+        timeManager.shutdown();
+        // 確保在shutdown後狀態不會改變
+        int initialScore = pet.getStateScore(PetState.HUNGRY);
+        Thread.sleep(5100);
+        org.junit.Assert.assertEquals(initialScore, pet.getStateScore(PetState.HUNGRY));
+    }
 } 

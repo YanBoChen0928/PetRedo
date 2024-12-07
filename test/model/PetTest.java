@@ -3,6 +3,8 @@ package model;
 import model.Pet;
 import model.PetState;
 import model.PetAction;
+import model.state.HappyState;
+import model.state.NormalState;
 
 /**
  * Test class for Pet model.
@@ -127,4 +129,57 @@ public class PetTest {
         pet.performAction(PetAction.PLAY);
         org.junit.Assert.assertEquals(0, pet.getStateScore(PetState.BORED));
     }
+    @org.junit.Test
+    public void testShowHappyState() throws InterruptedException {
+        // 測試快樂狀態的顯示和自動恢復
+        pet.updateState(PetState.HUNGRY, 5);
+        pet.performAction(PetAction.FEED);
+        org.junit.Assert.assertTrue(pet.getCurrentStateObject() instanceof HappyState);
+        Thread.sleep(2100);  // 等待超過2秒
+        org.junit.Assert.assertTrue(pet.getCurrentStateObject() instanceof NormalState);
+    }
+
+    @org.junit.Test
+    public void testWakeUpBehavior() {
+        // 測試喚醒功能
+        pet.updateState(PetState.TIRED, 10);
+        pet.performAction(PetAction.REST);
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        pet.wakeUp();
+        org.junit.Assert.assertFalse(pet.isSleeping());
+        org.junit.Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+    }
+
+    @org.junit.Test
+    public void testMultipleCriticalStates() {
+        // 測試多個危急狀態的優先級
+        pet.updateState(PetState.HUNGRY, 10);
+        pet.updateState(PetState.DIRTY, 10);
+        pet.updateState(PetState.TIRED, 10);
+        org.junit.Assert.assertEquals(PetState.DIRTY, pet.getCurrentState());
+    }
+
+    @org.junit.Test
+    public void testHandleRestActionWithOtherCriticalStates() {
+        // 測試在其他狀態危急時嘗試休息
+        pet.updateState(PetState.HUNGRY, 10);
+        pet.updateState(PetState.TIRED, 10);
+        try {
+            pet.performAction(PetAction.REST);
+            org.junit.Assert.fail("Should throw IllegalStateException");
+        } catch (IllegalStateException e) {
+            org.junit.Assert.assertTrue(e.getMessage().contains("feed"));
+        }
+    }
+
+    @org.junit.Test
+    public void testStateScoreValidation() {
+        // 測試狀態分數的邊界值
+        pet.updateState(PetState.HUNGRY, -1);
+        org.junit.Assert.assertEquals(0, pet.getStateScore(PetState.HUNGRY));
+
+        pet.updateState(PetState.HUNGRY, 15);
+        org.junit.Assert.assertEquals(10, pet.getStateScore(PetState.HUNGRY));
+    }
+
 } 
