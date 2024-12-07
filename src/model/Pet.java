@@ -182,8 +182,9 @@ public class Pet {
     }
     
     private void handleRestAction() {
-        if (currentState != PetState.TIRED) {
-            return;
+        // 检查是否有疲劳值
+        if (getStateScore(PetState.TIRED) == 0) {
+            throw new IllegalStateException("Your pet doesn't need to rest now!");
         }
         
         // 检查其他危急状态
@@ -195,7 +196,7 @@ public class Pet {
             }
         }
         
-        // 直接进入睡眠状态
+        // 进入睡眠状态
         setSleeping(true);
         resetState(PetState.TIRED);
         currentStateObject = new SleepingState(this);

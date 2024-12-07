@@ -5,10 +5,7 @@ public enum PetState {
     HUNGRY(3),
     DIRTY(5),
     TIRED(4),
-    BORED(2),
-    //Todo: Add a new state called HAPPY with a weight of 0
-    HAPPY(0),
-    SLEEPING(0);
+    BORED(2);
 
 
   private final int weight;
