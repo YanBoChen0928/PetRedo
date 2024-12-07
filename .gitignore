@@ -1,0 +1,5 @@
+# 忽略大檔案
+out/artifacts/VirtualPet_jar/VirtualSimba-1.0.dmg
+
+# 忽略整個目錄
+out/artifacts/
