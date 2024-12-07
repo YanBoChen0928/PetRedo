@@ -81,6 +81,7 @@ public class Pet {
      */
     public void updateCurrentState() {
         if (isSleeping) {
+            currentState = PetState.TIRED;  // 睡眠时仍然显示为TIRED状态
             currentStateObject = new SleepingState(this);
             return;
         }
@@ -210,6 +211,23 @@ public class Pet {
     }
     
     public PetState getCurrentState() { return currentState; }
+    
+    /**
+     * 获取用于显示的状态文本
+     * 当宠物死亡时返回"DEAD"
+     * 当宠物在睡眠时返回"SLEEPING"
+     * 否则返回实际状态
+     * @return 显示用的状态文本
+     */
+    public String getDisplayState() {
+        if (health <= 0) {
+            return "DEAD";
+        }
+        if (isSleeping) {
+            return "SLEEPING";
+        }
+        return currentState.toString();
+    }
     
     public PetStateBase getCurrentStateObject() { return currentStateObject; }
     

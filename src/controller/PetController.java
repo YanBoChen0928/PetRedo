@@ -102,18 +102,15 @@ public class PetController {
 
     public void updateView() {
         view.updateHealth(pet.getHealth());
+        view.updateState(pet.getDisplayState());
         
         if (pet.getHealth() <= 0) {
-            view.updateState("DEAD");
-            view.updatePetIcon("dead");
-            view.appendMessage("Your pet has died. Please create a new pet.");
+            view.updatePetIcon("dead.png");
             return;
         }
         
-        view.updateRestButton(pet.isSleeping());
-        
-        view.updateState(pet.getCurrentState().toString());
         view.updatePetIcon(pet.getCurrentStateObject().getStateIcon());
+        view.updateRestButton(pet.isSleeping());
 
         for (PetState state : PetState.values()) {
             if (state != PetState.NORMAL) {
