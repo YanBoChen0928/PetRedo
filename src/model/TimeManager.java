@@ -146,8 +146,12 @@ public class TimeManager {
             if (newHealth <= 0) {
                 // 先关闭时间系统，确保不会有新的状态更新
                 shutdown();
-                // 重置宠物状态
-                pet.initializeStates();
+                // 重置所有状态分数
+                for (PetState state : PetState.values()) {
+                    if (state != PetState.NORMAL) {
+                        pet.resetState(state);
+                    }
+                }
                 // 设置健康值为0并显示死亡消息
                 pet.setHealth(0);
                 notifyStateChange("Your pet has died!");
