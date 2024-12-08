@@ -58,7 +58,7 @@ public class Pet {
      * Initializes all possible states with score 0.
      * Sets the initial timestamp for action tracking.
      */
-    private void initializeStates() {
+    protected void initializeStates() {
         for (PetState state : PetState.values()) {
             if (state != PetState.NORMAL) {
                 stateScores.put(state, 0);
