@@ -11,10 +11,10 @@ import java.util.function.Consumer;
  */
 public class TimeManager {
     private final Pet pet;
-    private final ScheduledExecutorService scheduler;
-    private long sleepStartTime;  // 添加睡眠開始時間
-    private Runnable updateListener;  // 添加更新监听器
-    private Consumer<String> messageListener;  // 添加消息监听器
+    private ScheduledExecutorService scheduler;
+    private long sleepStartTime;
+    private Runnable updateListener;
+    private Consumer<String> messageListener;
     
     // One game day equals 1 minute real time
     private static final long DAY_DURATION = 60_000;
@@ -26,8 +26,43 @@ public class TimeManager {
      */
     public TimeManager(Pet pet) {
         this.pet = pet;
+        startScheduler();
+    }
+    
+    /**
+     * 启动时间管理系统
+     */
+    private void startScheduler() {
         this.scheduler = Executors.newScheduledThreadPool(1);
         initializeTimers();
+    }
+    
+    /**
+     * 重新启动时间管理系统
+     */
+    public void restart() {
+        // 重置基本属性
+        pet.setHealth(Pet.MAX_HEALTH);
+        pet.setSleeping(false);
+        
+        // 重启时间系统
+        shutdown();  // 先关闭现有的scheduler
+        startScheduler();  // 重新启动
+    }
+    
+    /**
+     * 关闭时间管理系统
+     */
+    public void shutdown() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();  // 立即停止所有任务
+            try {
+                // 等待所有任务完成
+                scheduler.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
     
     public void setUpdateListener(Runnable listener) {
@@ -97,7 +132,7 @@ public class TimeManager {
         if (pet.getHealth() <= 0) {
             return;  // 如果宠物已死亡，不再更新健康值
         }
-
+        
         if (pet.isSleeping()) {
             if (pet.getHealth() < Pet.MAX_HEALTH) {
                 pet.setHealth(Math.min(pet.getHealth() + Pet.HEALTH_RECOVERY_RATE, Pet.MAX_HEALTH));
@@ -107,11 +142,22 @@ public class TimeManager {
         
         if (pet.getCurrentState() != PetState.NORMAL) {
             int newHealth = pet.getHealth() - Pet.HEALTH_DECREASE_RATE;
-            pet.setHealth(newHealth);
-            // 检查是否刚刚死亡
+            // 检查是否会死亡
             if (newHealth <= 0) {
+                // 先关闭时间系统，确保不会有新的状态更新
+                shutdown();
+                // 然后重置所有状态分数
+                for (PetState state : PetState.values()) {
+                    if (state != PetState.NORMAL) {
+                        pet.resetState(state);
+                    }
+                }
+                // 最后设置健康值为0并显示死亡消息
+                pet.setHealth(0);
                 notifyStateChange("Your pet has died!");
+                return;
             }
+            pet.setHealth(newHealth);
         } else if (pet.getHealth() < Pet.MAX_HEALTH) {
             pet.setHealth(Math.min(pet.getHealth() + Pet.HEALTH_RECOVERY_RATE, Pet.MAX_HEALTH));
         }
@@ -123,8 +169,12 @@ public class TimeManager {
      * @param state The state to update
      */
     private void updateState(PetState state) {
-        if (pet.getHealth() <= 0 || pet.isSleeping()) {
-            return;
+        if (pet.getHealth() <= 0) {
+            return;  // 如果宠物已死亡，不再更新状态
+        }
+        
+        if (pet.isSleeping()) {
+            return;  // 如果宠物在睡眠，不更新状态
         }
         
         int currentScore = pet.getStateScore(state);
@@ -134,13 +184,6 @@ public class TimeManager {
         if (newScore != currentScore) {
             pet.updateState(state, newScore);
         }
-    }
-    
-    /**
-     * Shuts down the scheduler when program ends.
-     */
-    public void shutdown() {
-        scheduler.shutdown();
     }
     
     private void checkSleepTime() {

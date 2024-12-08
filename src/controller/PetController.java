@@ -89,13 +89,9 @@ public class PetController {
 
     private void handleNewPet() {
         if (pet.getHealth() <= 0) {
-            pet.setHealth(Pet.MAX_HEALTH);
-            for (PetState state : PetState.values()) {
-                if (state != PetState.NORMAL) {
-                    pet.resetState(state);
-                }
+            if (pet.getTimeManager() != null) {
+                pet.getTimeManager().restart();
             }
-            pet.setSleeping(false);
             view.enableActionButtons();
             view.updateRestButton(false);
             view.updatePetIcon("normal");

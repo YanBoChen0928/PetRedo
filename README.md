@@ -117,10 +117,12 @@ Key implementation details can be found in the following files:
      * all the other state scores would not change during sleep mode, but the health would keep recover through time
 
 3. Health Mechanics
-   - Initial value: 100
-   - Critical state decrease rate: -2 per second
-   - Recovery rate: +5 per second (no critical states)
+   - Initial value: 100 
    - Health capped at 0 to 100, when health reaches 0, the pet would die (dead state)
+   - Critical state decrease rate: -2 per second 
+     * no matter how many critical states, it would only decrease 2 per second
+   - Recovery rate: +5 per second (no critical states)
+ 
 
 ## Limitations
 1. Functional Limitations
