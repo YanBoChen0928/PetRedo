@@ -168,4 +168,110 @@ public class TimeManagerTest {
         Thread.sleep(5100);
         org.junit.Assert.assertEquals(initialScore, pet.getStateScore(PetState.HUNGRY));
     }
+
+    /**
+     * Tests health recovery during sleep.
+     * Health should increase while pet is sleeping.
+     * @throws InterruptedException if sleep is interrupted
+     */
+    @org.junit.Test
+    public void testHealthRecoveryDuringSleep() throws InterruptedException {
+        // 设置初始生命值为50
+        pet.setHealth(50);
+        // 确保pet和TimeManager关联
+        pet.setTimeManager(timeManager);
+        // 让宠物进入睡眠状态
+        pet.updateState(PetState.TIRED, 10);
+        pet.performAction(PetAction.REST);
+        
+        // 确认宠物在睡眠状态
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        
+        // 等待1.1秒让生命值恢复
+        Thread.sleep(1100);
+        
+        // 验证生命值增加了
+        org.junit.Assert.assertTrue(pet.getHealth() >= 55);  // 每秒恢复5点
+    }
+
+    /**
+     * Tests automatic wake up functionality
+     * @throws InterruptedException if sleep is interrupted
+     */
+    @org.junit.Test
+    public void testWakeUpFunctionality() throws InterruptedException {
+        // 确保pet和TimeManager关联
+        pet.setTimeManager(timeManager);
+        
+        // 让宠物进入睡眠状态
+        pet.updateState(PetState.TIRED, 10);
+        pet.performAction(PetAction.REST);
+        
+        // 确认宠物在睡眠状态
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        
+        // 直接调用wakeUp
+        pet.wakeUp();
+        
+        // 验证宠物已经醒来
+        org.junit.Assert.assertFalse(pet.isSleeping());
+        org.junit.Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+    }
+
+    /**
+     * Tests automatic wake up after 60 seconds of sleep
+     * @throws InterruptedException if sleep is interrupted
+     */
+    @org.junit.Test
+    public void testAutoWakeUpAfterSixtySeconds() throws InterruptedException {
+        // 确保pet和TimeManager关联
+        pet.setTimeManager(timeManager);
+        
+        // 让宠物进入睡眠状态
+        pet.updateState(PetState.TIRED, 10);
+        pet.performAction(PetAction.REST);
+        
+        // 确认宠物在睡眠状态
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        
+        // 设置一个监听器来捕获状态变化
+        final boolean[] wakeUpCalled = {false};
+        timeManager.setUpdateListener(() -> {
+            if (!pet.isSleeping()) {
+                wakeUpCalled[0] = true;
+            }
+        });
+        
+        // 等待足够长的时间（比如5秒）让自动唤醒发生
+        Thread.sleep(65000);
+        
+        // 验证宠物已经自动醒来
+        org.junit.Assert.assertFalse(pet.isSleeping());
+        org.junit.Assert.assertTrue(wakeUpCalled[0]);
+        org.junit.Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+    }
+
+    /**
+     * Tests that pet stays asleep before 60 seconds
+     * @throws InterruptedException if sleep is interrupted
+     */
+    @org.junit.Test
+    public void testPetStaysAsleepBefore60Seconds() throws InterruptedException {
+        // 确保pet和TimeManager关联
+        pet.setTimeManager(timeManager);
+        
+        // 让宠物进入睡眠状态
+        pet.updateState(PetState.TIRED, 10);
+        pet.performAction(PetAction.REST);
+        
+        // 确认宠物在睡眠状态
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        
+        // 等待一个较短的时间（比如30秒）
+        Thread.sleep(30000);
+        
+        // 验证宠物仍在睡眠
+        org.junit.Assert.assertTrue(pet.isSleeping());
+        org.junit.Assert.assertEquals(PetState.TIRED, pet.getCurrentState());
+    }
 } 
