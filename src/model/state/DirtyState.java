@@ -15,6 +15,6 @@ public class DirtyState extends PetStateBase {
     
     @Override
     public String getStateMessage() {
-        return "Your pet needs cleaning!";
+        return "Your pet is dirty!";
     }
 } 

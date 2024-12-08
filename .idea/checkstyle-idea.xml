@@ -9,6 +9,7 @@
       <list>
         <ConfigurationLocation id="bundled-sun-checks" type="BUNDLED" scope="All" description="Sun Checks">(bundled)</ConfigurationLocation>
         <ConfigurationLocation id="bundled-google-checks" type="BUNDLED" scope="All" description="Google Checks">(bundled)</ConfigurationLocation>
+        <ConfigurationLocation id="757c2f7f-29cd-4752-b95f-e0224ec23d9a" type="LOCAL_FILE" scope="All" description="NEU">$USER_HOME$/Documents/*Life in Canada/CS study related/Student Course, Guide/CS5004/northeastern_checks.xml</ConfigurationLocation>
       </list>
     </option>
   </component>

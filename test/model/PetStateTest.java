@@ -137,7 +137,7 @@ public class PetStateTest {
 
     @org.junit.Test
     public void testDirtyStateMessage() {
-        org.junit.Assert.assertEquals("Your pet needs cleaning!", dirtyState.getStateMessage());
+        org.junit.Assert.assertEquals("Your pet is dirty!", dirtyState.getStateMessage());
     }
 
     @org.junit.Test

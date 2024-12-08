@@ -73,10 +73,21 @@ public class Pet {
      * @param score The new score value (will be capped at MAX_SCORE)
      */
     public void updateState(PetState state, int score) {
+        if (health <= 0) {  // 如果已經死亡，不做任何更新
+            return;
+        }
+        
         if (state != PetState.NORMAL) {
             //restrict the score to be within 0 and MAX_SCORE
             int currentScore = Math.min(Math.max(score,0), MAX_SCORE);
             stateScores.put(state, currentScore);
+            if (currentScore >= MAX_SCORE) {
+                // 使用 PetAction 來獲取對應的動作訊息
+                PetAction action = PetAction.getActionForState(state);
+                timeManager.notifyStateChange(String.format("Your pet needs %s! Please %s your pet!", 
+                    action.toString().toLowerCase(), 
+                    action.toString().toLowerCase()));
+            }
             updateCurrentState();
         }
     }

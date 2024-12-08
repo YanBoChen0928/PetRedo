@@ -55,10 +55,10 @@ public class TimeManager {
      */
     public void shutdown() {
         if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdownNow();  // 立即停止所有任务
+            scheduler.shutdownNow();  // 使用shutdownNow()而不是shutdown()
             try {
-                // 等待所有任务完成
-                scheduler.awaitTermination(1, TimeUnit.SECONDS);
+                // 等待所有任務完成，但最多等待100ms
+                scheduler.awaitTermination(100, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -75,6 +75,10 @@ public class TimeManager {
     
     public void notifyStateChange(String message) {
         if (messageListener != null) {
+            // 如果寵物已死亡，只允許死亡消息通過
+            if (pet.getHealth() <= 0 && !message.contains("has died")) {
+                return;  // 阻止所有非死亡消息
+            }
             messageListener.accept(message);
         }
     }
@@ -142,19 +146,18 @@ public class TimeManager {
         
         if (pet.getCurrentState() != PetState.NORMAL) {
             int newHealth = pet.getHealth() - Pet.HEALTH_DECREASE_RATE;
-            // 检查是否会死亡
             if (newHealth <= 0) {
-                // 先关闭时间系统，确保不会有新的状态更新
-                shutdown();
-                // 重置所有状态分数
+                shutdown();  // 先关闭时间系统
+                // 重置所有状态
                 for (PetState state : PetState.values()) {
                     if (state != PetState.NORMAL) {
                         pet.resetState(state);
                     }
                 }
-                // 设置健康值为0并显示死亡消息
                 pet.setHealth(0);
-                notifyStateChange("Your pet has died!");
+                notifyStateChange("Your pet has died!"
+                    + " Taking care of pets is like nurturing children. "
+                    + "It never be easy, but it's always worth it.");
                 return;
             }
             pet.setHealth(newHealth);
@@ -170,7 +173,7 @@ public class TimeManager {
      */
     private void updateState(PetState state) {
         if (pet.getHealth() <= 0) {
-            return;  // 如果宠物已死亡，不再更新状态
+            return;  // 如果宠物已死亡，立即返回，不做任何更新或通知
         }
         
         if (pet.isSleeping()) {
