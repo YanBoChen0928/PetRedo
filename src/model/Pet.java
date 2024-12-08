@@ -237,7 +237,12 @@ public class Pet {
     
     // Getters and setters with validation
     public int getHealth() { return health; }
-    
+
+    /**
+     * Sets the pet's health, ensuring it stays within the valid range.
+     * Health cannot be less than 0 or greater than MAX_HEALTH.
+     * @param health The new health value
+     */
     public void setHealth(int health) {
         this.health = Math.min(Math.max(health, 0), MAX_HEALTH);
     }

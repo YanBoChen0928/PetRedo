@@ -95,7 +95,7 @@ public class TimeManager {
      */
     private void updateHealth() {
         if (pet.getHealth() <= 0) {
-            return;
+            return;  // 如果宠物已死亡，不再更新健康值
         }
 
         if (pet.isSleeping()) {
@@ -106,7 +106,12 @@ public class TimeManager {
         }
         
         if (pet.getCurrentState() != PetState.NORMAL) {
-            pet.setHealth(pet.getHealth() - Pet.HEALTH_DECREASE_RATE);
+            int newHealth = pet.getHealth() - Pet.HEALTH_DECREASE_RATE;
+            pet.setHealth(newHealth);
+            // 检查是否刚刚死亡
+            if (newHealth <= 0) {
+                notifyStateChange("Your pet has died!");
+            }
         } else if (pet.getHealth() < Pet.MAX_HEALTH) {
             pet.setHealth(Math.min(pet.getHealth() + Pet.HEALTH_RECOVERY_RATE, Pet.MAX_HEALTH));
         }
