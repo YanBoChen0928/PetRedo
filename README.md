@@ -1,7 +1,16 @@
-# Virtual Pet Game
+# Virtual Pet Game 
+version 1.0, 2024-12-07
+produced by Yan-Bo Chen
 
 ## Overview
-In today's fast-paced world, many people desire to have pets but struggle with the time commitment required for pet care. This virtual pet game offers a lightweight way to experience the joy of pet ownership. Developed in Java using MVC architecture, the game simulates real pet care through real-time state monitoring and interaction mechanisms. Players need to attend to various pet needs (hunger, cleanliness, tiredness, entertainment) and take appropriate care measures, fostering both entertainment and a sense of responsibility.
+In today's fast-paced world, many people desire to have pets but struggle with the time commitment required 
+for pet care. This virtual pet game offers a lightweight way to experience the joy of pet ownership. 
+
+Developed in Java using MVC architecture, the game simulates real pet care through real-time state monitoring 
+and interaction mechanisms. 
+
+Players need to attend to various pet needs (hunger, cleanliness, tiredness, entertainment) and 
+take appropriate care measures, fostering both entertainment and a sense of responsibility. Have fun !!!
 
 ## Features
 1. State Monitoring System
@@ -46,13 +55,21 @@ In today's fast-paced world, many people desire to have pets but struggle with t
 
 3. Special Features
    - Sleep mode:
-     * Entry condition: Only available in tired state
+     * Entry condition: 
+       * Available in tired state score value > 0 and 
+       * there are no critical states of hunger, cleanliness, or boredom
      * Auto wake-up: After 1 minute
      * Manual wake-up: Click "Wake Up" button
+     * No actions allowed during sleep mode except wake-up
+     * When pet is in sleep mode, health would recover through time and other states score would not change
    
    - Revival function:
      * Trigger condition: After pet death
      * Operation: Click "New Pet" button
+     
+4. Game End
+   - Game stop when pet health reaches 0, you can start a new game by clicking "New Pet" button or
+   - Click the X button in the top-left corner of the Virtual Pet window to close the application
 
 ## Implementation References
 Key implementation details can be found in the following files:
@@ -72,7 +89,6 @@ Key implementation details can be found in the following files:
 
 ## Assumptions
 1. Time Settings
-   - Game time: 1 day = 1 real minute (60,000ms)
    - Base time unit: 1 second
 
 2. State Mechanics
@@ -84,23 +100,44 @@ Key implementation details can be found in the following files:
    - Updates start when game begins and pass each state's interval
    - States update at fixed intervals
    - Multiple states can change simultaneously
+   - State scores are capped at 10 (critical state), and if there are more than one critical states, 
+   - the pet would display the state with the highest default weight
+   - Health decreases when any state reaches 10
+   - the pet can not go to sleep when there are critical states of hunger, cleanliness, or boredom
+   - the pet can not perform any actions when it is in sleep mode except wake up
+   - Happy and Sleeping is two special state, so they are not put in enum.
+   - Sleep state:
+     * can only be entered when tired state score value > 0 and no critical states
+     * auto wake-up after 1 minute
+     * manual wake-up available
+     * all the other state scores would not change during sleep mode, but the health would keep recover through time
 
 3. Health Mechanics
    - Initial value: 100
    - Critical state decrease rate: -2 per second
    - Recovery rate: +5 per second (no critical states)
+   - Health capped at 0 to 100, when health reaches 0, the pet would die (dead state)
 
 ## Limitations
 1. Functional Limitations
-   - States are managed by a priority system based on weights
+   - States are managed by a priority system based on default setting weights
    - Actions can be performed as long as the state score is not 0
    - No actions allowed during sleep state except wake up
-   - Sleep mode is only available when the pet is tired
+   - Sleep mode is only available when the pet has tired state score value > 0 and no other critical states
+   - New pet creation can only be implemented and the only allowable action when the pet is dead
+   - When the Virtual Pet window is closed, the game stops and the application terminates, the game cannot be resumed
+   - And we don't have a pause function, so the game can not be paused
 
 2. Technical Limitations
    - Single pet support only
-   - No save functionality
+   - No save other functionality except above-mentioned
+   - Very basic pet care simulation UI
+   - The score value for each state increases in a segmented manner rather than changing continuously
    - No custom pet appearance options
+   - No custom state weight settings
+   - No custom state update intervals
+   - No custom health update rates
+   - No custom sleep duration
 
 ## Citations
 1. Image Resources:
