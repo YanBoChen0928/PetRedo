@@ -126,19 +126,29 @@ public class Pet {
                 break;
         }
         
-        // 检查状态是否发生变化
-        if (newState != previousState) {
+        // 检查状态是否发生变化，并且不是从happy状态切换
+        if (newState != previousState && !(currentStateObject instanceof HappyState)) {
             // 如果是临界状态，显示警告消息
             if (criticalState != null) {
-                PetAction requiredAction = PetAction.getActionForState(criticalState);
+                // 使用新的延迟通知方法
                 if (timeManager != null) {
-                    timeManager.notifyStateChange(String.format("%s Please %s your pet!", 
-                        currentStateObject.getStateMessage(),
-                        requiredAction.toString().toLowerCase()));
+                    final PetState finalCriticalState = criticalState;
+                    final PetStateBase finalStateObject = currentStateObject;
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(100); // 短暂延迟，确保在happy消息之后
+                            PetAction requiredAction = PetAction.getActionForState(finalCriticalState);
+                            timeManager.notifyStateChange(String.format("%s Please %s your pet!", 
+                                finalStateObject.getStateMessage(),
+                                requiredAction.toString().toLowerCase()));
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
                 }
             }
-            previousState = newState;  // 更新前一个状态
         }
+        previousState = newState;  // 更新前一个状态
     }
     
     /**
@@ -280,6 +290,8 @@ public class Pet {
     public void resetState(PetState state) {
         if (state != PetState.NORMAL) {
             stateScores.put(state, 0);
+            // 强制更新前一个状态为NORMAL，这样其他临界状态的消息会被显示
+            previousState = PetState.NORMAL;
             updateCurrentState();
         }
     }
