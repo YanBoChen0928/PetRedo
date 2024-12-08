@@ -100,9 +100,10 @@ Key implementation details can be found in the following files:
    - Updates start when game begins and pass each state's interval
    - States update at fixed intervals
    - Multiple states can change simultaneously
-   - State scores are capped at 10 (critical state), and if there are more than one critical states, 
-   - The pet would display the state with the highest default weight
-   - And the GUI view message will demonstrate the state with the highest default weight every time the state changes 
+     * State scores are capped at 10 (critical state), and if there are more than one critical states, 
+     * The pet would display the state with the highest default weight 
+     * And the GUI view message will demonstrate the state with the highest default weight every time the state changes
+     * And the message also encourage the player to take care of the pet
    - Health decreases when any state reaches 10
    - the pet can not go to sleep when there are critical states of hunger, cleanliness, or boredom
    - the pet can not perform any actions when it is in sleep mode except wake up

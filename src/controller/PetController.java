@@ -21,6 +21,10 @@ public class PetController {
         view.setPlayButtonListener(e -> handleAction(PetAction.PLAY));
         view.setRestButtonListener(e -> handleAction(PetAction.REST));
         view.setNewPetButtonListener(e -> handleNewPet());
+        
+        if (pet.getTimeManager() != null) {
+            pet.getTimeManager().setMessageListener(message -> view.appendMessage(message));
+        }
     }
 
     private void handleAction(PetAction action) {
@@ -41,7 +45,6 @@ public class PetController {
 
         try {
             pet.performAction(action);
-            updateView();
             if (pet.getStateScore(action.getTargetState()) == 0) {
                 view.appendMessage(String.format("Your pet is happy after %s!", 
                     action.toString().toLowerCase()));
@@ -49,6 +52,7 @@ public class PetController {
                 view.appendMessage(String.format("Performed %s.", 
                     action.toString().toLowerCase()));
             }
+            updateView();
         } catch (IllegalStateException e) {
             view.appendMessage(e.getMessage());
         }

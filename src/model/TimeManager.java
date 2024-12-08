@@ -3,6 +3,7 @@ package model;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * Manages time-based events and state updates for the pet.
@@ -13,6 +14,7 @@ public class TimeManager {
     private final ScheduledExecutorService scheduler;
     private long sleepStartTime;  // 添加睡眠開始時間
     private Runnable updateListener;  // 添加更新监听器
+    private Consumer<String> messageListener;  // 添加消息监听器
     
     // One game day equals 1 minute real time
     private static final long DAY_DURATION = 60_000;
@@ -30,6 +32,16 @@ public class TimeManager {
     
     public void setUpdateListener(Runnable listener) {
         this.updateListener = listener;
+    }
+    
+    public void setMessageListener(Consumer<String> listener) {
+        this.messageListener = listener;
+    }
+    
+    public void notifyStateChange(String message) {
+        if (messageListener != null) {
+            messageListener.accept(message);
+        }
     }
     
     private void notifyUpdate() {

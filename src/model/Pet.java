@@ -31,6 +31,7 @@ public class Pet {
     public static final int HEALTH_RECOVERY_RATE = 5;
     
     private TimeManager timeManager;  // 添加 TimeManager 引用
+    private PetState previousState = PetState.NORMAL;  // 添加前一个状态的记录
     
     /**
      * Creates a new pet with default values.
@@ -47,6 +48,10 @@ public class Pet {
     
     public void setTimeManager(TimeManager timeManager) {
         this.timeManager = timeManager;
+    }
+    
+    public TimeManager getTimeManager() {
+        return timeManager;
     }
     
     /**
@@ -89,6 +94,7 @@ public class Pet {
         PetState criticalState = null;
         int maxWeight = 0;
         
+        // 找出权重最高的临界状态
         for (PetState state : stateScores.keySet()) {
             if (stateScores.get(state) >= MAX_SCORE) {
                 if (state.getWeight() > maxWeight) {
@@ -98,8 +104,10 @@ public class Pet {
             }
         }
         
-        this.currentState = (criticalState != null) ? criticalState : PetState.NORMAL;
+        PetState newState = (criticalState != null) ? criticalState : PetState.NORMAL;
+        this.currentState = newState;
         
+        // 先更新状态对象
         switch(currentState) {
             case NORMAL:
                 currentStateObject = new NormalState(this);
@@ -117,7 +125,20 @@ public class Pet {
                 currentStateObject = new BoredState(this);
                 break;
         }
-        //ToDo: pending for check
+        
+        // 检查状态是否发生变化
+        if (newState != previousState) {
+            // 如果是临界状态，显示警告消息
+            if (criticalState != null) {
+                PetAction requiredAction = PetAction.getActionForState(criticalState);
+                if (timeManager != null) {
+                    timeManager.notifyStateChange(String.format("%s Please %s your pet!", 
+                        currentStateObject.getStateMessage(),
+                        requiredAction.toString().toLowerCase()));
+                }
+            }
+            previousState = newState;  // 更新前一个状态
+        }
     }
     
     /**
