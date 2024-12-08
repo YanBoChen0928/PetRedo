@@ -189,7 +189,7 @@ public class Pet {
         
         new Thread(() -> {
             try {
-                Thread.sleep(2000);  // 从3秒改为2秒
+                Thread.sleep(2000);  // present happy.png for 2 seconds
                 if (!isSleeping) {
                     updateCurrentState();
                 }

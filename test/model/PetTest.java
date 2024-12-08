@@ -182,4 +182,65 @@ public class PetTest {
         org.junit.Assert.assertEquals(10, pet.getStateScore(PetState.HUNGRY));
     }
 
+    /**
+     * Tests the display state under different conditions:
+     * - Dead state (health = 0)
+     * - Sleeping state
+     * - Normal state
+     */
+    @org.junit.Test
+    public void testGetDisplayState() {
+        // Test dead state
+        pet.setHealth(0);
+        org.junit.Assert.assertEquals("DEAD", pet.getDisplayState());
+        
+        // Reset health and test sleeping state
+        pet.setHealth(100);
+        pet.updateState(PetState.TIRED, 10);
+        pet.performAction(PetAction.REST);
+        org.junit.Assert.assertEquals("SLEEPING", pet.getDisplayState());
+        
+        // Wake up and test normal state
+        pet.wakeUp();
+        org.junit.Assert.assertEquals("NORMAL", pet.getDisplayState());
+        
+        // Test other states
+        pet.updateState(PetState.HUNGRY, 10);
+        org.junit.Assert.assertEquals("HUNGRY", pet.getDisplayState());
+    }
+
+    /**
+     * Tests that rest action throws exception when pet is not tired
+     */
+    @org.junit.Test
+    public void testRestActionWithNoTiredness() {
+        // 确保宠物没有疲劳值
+        pet.updateState(PetState.TIRED, 0);
+        
+        try {
+            pet.performAction(PetAction.REST);
+            org.junit.Assert.fail("Should throw IllegalStateException when pet is not tired");
+        } catch (IllegalStateException e) {
+            org.junit.Assert.assertEquals(
+                "Your pet doesn't need to rest now!",
+                e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Tests that rest action works when pet is tired
+     */
+    @org.junit.Test
+    public void testRestActionWithTiredness() {
+        // 设置疲劳值
+        pet.updateState(PetState.TIRED, 5);
+        
+        // 执行休息动作应该成功
+        pet.performAction(PetAction.REST);
+        
+        // 验证宠物进入睡眠状态
+        org.junit.Assert.assertTrue(pet.isSleeping());
+    }
+
 } 
