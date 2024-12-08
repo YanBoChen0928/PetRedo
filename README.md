@@ -101,11 +101,14 @@ Key implementation details can be found in the following files:
    - States update at fixed intervals
    - Multiple states can change simultaneously
    - State scores are capped at 10 (critical state), and if there are more than one critical states, 
-   - the pet would display the state with the highest default weight
+   - The pet would display the state with the highest default weight
+   - And the GUI view message will demonstrate the state with the highest default weight every time the state changes 
    - Health decreases when any state reaches 10
    - the pet can not go to sleep when there are critical states of hunger, cleanliness, or boredom
    - the pet can not perform any actions when it is in sleep mode except wake up
    - Happy and Sleeping is two special state, so they are not put in enum.
+     * Happy state: only show up 2 seconds when the pet is fed, cleaned, or played, not is rest
+     * Sleeping state: only show up when the pet is in sleep mode
    - Sleep state:
      * can only be entered when tired state score value > 0 and no critical states
      * auto wake-up after 1 minute
