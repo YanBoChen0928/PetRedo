@@ -81,8 +81,7 @@ public class Pet {
             //restrict the score to be within 0 and MAX_SCORE
             int currentScore = Math.min(Math.max(score,0), MAX_SCORE);
             stateScores.put(state, currentScore);
-            if (currentScore >= MAX_SCORE) {
-                // 使用 PetAction 來獲取對應的動作訊息
+            if (currentScore >= MAX_SCORE && timeManager != null) {  // 檢查 timeManager 是否存在
                 PetAction action = PetAction.getActionForState(state);
                 timeManager.notifyStateChange(String.format("Your pet needs %s! Please %s your pet!", 
                     action.toString().toLowerCase(), 
@@ -226,7 +225,7 @@ public class Pet {
     }
     
     private void handleRestAction() {
-        // 检查是否有疲劳值
+        // 检��是否有疲劳值
         if (getStateScore(PetState.TIRED) == 0) {
             throw new IllegalStateException("Your pet doesn't need to rest now!");
         }
@@ -306,7 +305,7 @@ public class Pet {
     public void resetState(PetState state) {
         if (state != PetState.NORMAL) {
             stateScores.put(state, 0);
-            // 强制更新前一个状态为NORMAL，这样其他临界状态的消息会被显示
+            // 强制更新前一个状态为NORMAL，这��其他临界状态的消息会被显示
             previousState = PetState.NORMAL;
             updateCurrentState();
         }

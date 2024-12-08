@@ -1,9 +1,9 @@
 package model;
 
-import model.Pet;
-import model.PetState;
-import model.PetAction;
-import model.TimeManager;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.Assert;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test class for TimeManager.
@@ -18,43 +18,33 @@ public class TimeManagerTest {
     private Pet pet;
     private TimeManager timeManager;
     
-    /**
-     * Set up method executed before each test.
-     * Creates new Pet and TimeManager instances for testing.
-     */
-    @org.junit.Before
+    @Before
     public void setUp() {
         pet = new Pet();
-        timeManager = new TimeManager(pet);
+        timeManager = new TimeManager(pet) {
+            @Override
+            public void notifyStateChange(String message) {
+                // 測試中不需要實際發送通知
+            }
+        };
+        pet.setTimeManager(timeManager);
+        // 確保在每個測試開始時重置計時器
+        timeManager.restart();
     }
     
-    /**
-     * Tests health decrease in critical state.
-     * Health should decrease by 5 points per second when any state is critical.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @org.junit.Test
+    @Test
     public void testHealthDecrease() throws InterruptedException {
-        // Set pet to critical hunger state
         pet.updateState(PetState.HUNGRY, 10);
         int initialHealth = pet.getHealth();
-        // Wait for health decrease (-2 per second)
         Thread.sleep(1100);
-        org.junit.Assert.assertTrue(pet.getHealth() <= initialHealth - 2);
+        Assert.assertTrue(pet.getHealth() <= initialHealth - 2);
     }
 
-    /**
-     * Tests health recovery in normal state.
-     * Health should increase by 15 points per second when no state is critical.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @org.junit.Test
+    @Test
     public void testHealthIncrease() throws InterruptedException {
-        // Set initial health to test recovery
         pet.setHealth(50);
-        // Wait for health increase (+5 per second)
         Thread.sleep(1100);
-        org.junit.Assert.assertTrue(pet.getHealth() >= 55);
+        Assert.assertTrue(pet.getHealth() >= 55);
     }
     
     /**
@@ -62,13 +52,13 @@ public class TimeManagerTest {
      * Hunger should increase by 3 points every 2 seconds.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testHungerIncrease() throws InterruptedException {
         // Record initial hunger score
         int initialScore = pet.getStateScore(PetState.HUNGRY);
         // Wait for 2 seconds (+3 points)
         Thread.sleep(5100);
-        org.junit.Assert.assertTrue(pet.getStateScore(PetState.HUNGRY) >= initialScore + 3);
+        Assert.assertTrue(pet.getStateScore(PetState.HUNGRY) >= initialScore + 3);
     }
     
     /**
@@ -76,13 +66,13 @@ public class TimeManagerTest {
      * Dirtiness should increase by 5 points every 10 seconds.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testCleanlinessDecrease() throws InterruptedException {
         // Record initial cleanliness score
         int initialScore = pet.getStateScore(PetState.DIRTY);
         // Wait for 15 seconds (+5 points)
         Thread.sleep(15100);
-        org.junit.Assert.assertTrue(pet.getStateScore(PetState.DIRTY) >= initialScore + 5);
+        Assert.assertTrue(pet.getStateScore(PetState.DIRTY) >= initialScore + 5);
     }
     
     /**
@@ -90,13 +80,13 @@ public class TimeManagerTest {
      * Tiredness should increase by 4 points every 10 seconds.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testTirednessIncrease() throws InterruptedException {
         // Record initial tiredness score
         int initialScore = pet.getStateScore(PetState.TIRED);
         // Wait for 15 seconds (+4 points)
         Thread.sleep(15100);
-        org.junit.Assert.assertTrue(pet.getStateScore(PetState.TIRED) >= initialScore + 4);
+        Assert.assertTrue(pet.getStateScore(PetState.TIRED) >= initialScore + 4);
     }
     
     /**
@@ -104,13 +94,13 @@ public class TimeManagerTest {
      * Boredom should increase by 2 points every 5 seconds.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testBoredIncrease() throws InterruptedException {
         // Record initial boredom score
         int initialScore = pet.getStateScore(PetState.BORED);
         // Wait for 10 seconds (+2 points)
         Thread.sleep(10100);
-        org.junit.Assert.assertTrue(pet.getStateScore(PetState.BORED) >= initialScore + 2);
+        Assert.assertTrue(pet.getStateScore(PetState.BORED) >= initialScore + 2);
     }
     
     /**
@@ -118,7 +108,7 @@ public class TimeManagerTest {
      * All state scores should remain constant while pet is sleeping.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testSleepingStateFreeze() throws InterruptedException {
         // Record hunger score before sleep
         int hungryScore = pet.getStateScore(PetState.HUNGRY);
@@ -128,18 +118,18 @@ public class TimeManagerTest {
         pet.updateState(PetState.TIRED, 10);
         pet.performAction(PetAction.REST);
         // confirm pet is sleeping
-        org.junit.Assert.assertTrue(pet.isSleeping());
+        Assert.assertTrue(pet.isSleeping());
         // Wait and verify score hasn't changed,
         // initially if no sleep should increase by 3 points every 5 seconds
         Thread.sleep(15100);
-        org.junit.Assert.assertEquals(
+        Assert.assertEquals(
             hungryScore, pet.getStateScore(PetState.HUNGRY));
     }
     /**
      * Tests that the update listener is properly notified of state changes.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testUpdateListenerNotification() throws InterruptedException {
         final boolean[] listenerCalled = {false};
         timeManager.setUpdateListener(() -> listenerCalled[0] = true);
@@ -153,20 +143,20 @@ public class TimeManagerTest {
         // Wait for state update
         Thread.sleep(3100);  // 等待3.1
         
-        org.junit.Assert.assertTrue("Update listener should be called", listenerCalled[0]);
+        Assert.assertTrue("Update listener should be called", listenerCalled[0]);
     }
 
     /**
      * Tests that the TimeManager properly shuts down and stops updating states.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testShutdownBehavior() throws InterruptedException {
         timeManager.shutdown();
         // 確保在shutdown後狀態不會改變
         int initialScore = pet.getStateScore(PetState.HUNGRY);
         Thread.sleep(5100);
-        org.junit.Assert.assertEquals(initialScore, pet.getStateScore(PetState.HUNGRY));
+        Assert.assertEquals(initialScore, pet.getStateScore(PetState.HUNGRY));
     }
 
     /**
@@ -174,7 +164,7 @@ public class TimeManagerTest {
      * Health should increase while pet is sleeping.
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testHealthRecoveryDuringSleep() throws InterruptedException {
         // 设置初始生命值为50
         pet.setHealth(50);
@@ -185,20 +175,20 @@ public class TimeManagerTest {
         pet.performAction(PetAction.REST);
         
         // 确认宠物在睡眠状态
-        org.junit.Assert.assertTrue(pet.isSleeping());
+        Assert.assertTrue(pet.isSleeping());
         
         // 等待1.1秒让生命值恢复
         Thread.sleep(1100);
         
         // 验证生命值增加了
-        org.junit.Assert.assertTrue(pet.getHealth() >= 55);  // 每秒恢复5点
+        Assert.assertTrue(pet.getHealth() >= 55);  // 每秒恢复5点
     }
 
     /**
      * Tests automatic wake up functionality
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testWakeUpFunctionality() throws InterruptedException {
         // 确保pet和TimeManager关联
         pet.setTimeManager(timeManager);
@@ -208,21 +198,21 @@ public class TimeManagerTest {
         pet.performAction(PetAction.REST);
         
         // 确认宠物在睡眠状态
-        org.junit.Assert.assertTrue(pet.isSleeping());
+        Assert.assertTrue(pet.isSleeping());
         
         // 直接调用wakeUp
         pet.wakeUp();
         
         // 验证宠物已经醒来
-        org.junit.Assert.assertFalse(pet.isSleeping());
-        org.junit.Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+        Assert.assertFalse(pet.isSleeping());
+        Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
     }
 
     /**
      * Tests automatic wake up after 60 seconds of sleep
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testAutoWakeUpAfterSixtySeconds() throws InterruptedException {
         // 确保pet和TimeManager关联
         pet.setTimeManager(timeManager);
@@ -232,7 +222,7 @@ public class TimeManagerTest {
         pet.performAction(PetAction.REST);
         
         // 确认宠物在睡眠状态
-        org.junit.Assert.assertTrue(pet.isSleeping());
+        Assert.assertTrue(pet.isSleeping());
         
         // 设置一个监听器来捕获状态变化
         final boolean[] wakeUpCalled = {false};
@@ -242,20 +232,20 @@ public class TimeManagerTest {
             }
         });
         
-        // 等待足够长的时间（比如65秒）让自动唤醒发生
+        // 等待足够长的时间（比如5秒）让自动唤醒发生
         Thread.sleep(65000);
         
         // 验证宠物已经自动醒来
-        org.junit.Assert.assertFalse(pet.isSleeping());
-        org.junit.Assert.assertTrue(wakeUpCalled[0]);
-        org.junit.Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+        Assert.assertFalse(pet.isSleeping());
+        Assert.assertTrue(wakeUpCalled[0]);
+        Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
     }
 
     /**
      * Tests that pet stays asleep before 60 seconds
      * @throws InterruptedException if sleep is interrupted
      */
-    @org.junit.Test
+    @Test
     public void testPetStaysAsleepBefore60Seconds() throws InterruptedException {
         // 确保pet和TimeManager关联
         pet.setTimeManager(timeManager);
@@ -265,13 +255,13 @@ public class TimeManagerTest {
         pet.performAction(PetAction.REST);
         
         // 确认宠物在睡眠状态
-        org.junit.Assert.assertTrue(pet.isSleeping());
+        Assert.assertTrue(pet.isSleeping());
         
         // 等待一个较短的时间（比如30秒）
         Thread.sleep(30000);
         
         // 验证宠物仍在睡眠
-        org.junit.Assert.assertTrue(pet.isSleeping());
-        org.junit.Assert.assertEquals(PetState.TIRED, pet.getCurrentState());
+        Assert.assertTrue(pet.isSleeping());
+        Assert.assertEquals(PetState.TIRED, pet.getCurrentState());
     }
 } 
