@@ -1,9 +1,8 @@
 package model;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Test class for TimeManager.
@@ -15,253 +14,268 @@ import java.util.concurrent.TimeUnit;
  * 1 game day = 1 real minute (60,000ms)
  */
 public class TimeManagerTest {
-    private Pet pet;
-    private TimeManager timeManager;
-    
-    @Before
-    public void setUp() {
-        pet = new Pet();
-        timeManager = new TimeManager(pet) {
-            @Override
-            public void notifyStateChange(String message) {
-                // 測試中不需要實際發送通知
-            }
-        };
-        pet.setTimeManager(timeManager);
-        // 確保在每個測試開始時重置計時器
-        timeManager.restart();
-    }
-    
-    @Test
-    public void testHealthDecrease() throws InterruptedException {
-        pet.updateState(PetState.HUNGRY, 10);
-        int initialHealth = pet.getHealth();
-        Thread.sleep(1100);
-        Assert.assertTrue(pet.getHealth() <= initialHealth - 2);
-    }
+  private Pet pet;
+  private TimeManager timeManager;
 
-    @Test
-    public void testHealthIncrease() throws InterruptedException {
-        pet.setHealth(50);
-        Thread.sleep(1100);
-        Assert.assertTrue(pet.getHealth() >= 55);
-    }
-    
-    /**
-     * Tests hunger state increase rate.
-     * Hunger should increase by 3 points every 2 seconds.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testHungerIncrease() throws InterruptedException {
-        // Record initial hunger score
-        int initialScore = pet.getStateScore(PetState.HUNGRY);
-        // Wait for 2 seconds (+3 points)
-        Thread.sleep(5100);
-        Assert.assertTrue(pet.getStateScore(PetState.HUNGRY) >= initialScore + 3);
-    }
-    
-    /**
-     * Tests cleanliness state decrease rate.
-     * Dirtiness should increase by 5 points every 10 seconds.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testCleanlinessDecrease() throws InterruptedException {
-        // Record initial cleanliness score
-        int initialScore = pet.getStateScore(PetState.DIRTY);
-        // Wait for 15 seconds (+5 points)
-        Thread.sleep(15100);
-        Assert.assertTrue(pet.getStateScore(PetState.DIRTY) >= initialScore + 5);
-    }
-    
-    /**
-     * Tests tiredness increase rate.
-     * Tiredness should increase by 4 points every 10 seconds.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testTirednessIncrease() throws InterruptedException {
-        // Record initial tiredness score
-        int initialScore = pet.getStateScore(PetState.TIRED);
-        // Wait for 15 seconds (+4 points)
-        Thread.sleep(15100);
-        Assert.assertTrue(pet.getStateScore(PetState.TIRED) >= initialScore + 4);
-    }
-    
-    /**
-     * Tests boredom increase rate.
-     * Boredom should increase by 2 points every 5 seconds.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testBoredIncrease() throws InterruptedException {
-        // Record initial boredom score
-        int initialScore = pet.getStateScore(PetState.BORED);
-        // Wait for 10 seconds (+2 points)
-        Thread.sleep(10100);
-        Assert.assertTrue(pet.getStateScore(PetState.BORED) >= initialScore + 2);
-    }
-    
-    /**
-     * Tests that states don't change during sleep.
-     * All state scores should remain constant while pet is sleeping.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testSleepingStateFreeze() throws InterruptedException {
-        // Record hunger score before sleep
-        int hungryScore = pet.getStateScore(PetState.HUNGRY);
-        // confirm pet and TimeManager are related to each other !? important
-        pet.setTimeManager(timeManager);
-        // Put pet to sleep
-        pet.updateState(PetState.TIRED, 10);
-        pet.performAction(PetAction.REST);
-        // confirm pet is sleeping
-        Assert.assertTrue(pet.isSleeping());
-        // Wait and verify score hasn't changed,
-        // initially if no sleep should increase by 3 points every 5 seconds
-        Thread.sleep(15100);
-        Assert.assertEquals(
-            hungryScore, pet.getStateScore(PetState.HUNGRY));
-    }
-    /**
-     * Tests that the update listener is properly notified of state changes.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testUpdateListenerNotification() throws InterruptedException {
-        final boolean[] listenerCalled = {false};
-        timeManager.setUpdateListener(() -> listenerCalled[0] = true);
-        
-        // ensure pet and TimeManager are related to each other
-        pet.setTimeManager(timeManager);
-        
-        // set a state score close to critical
-        pet.updateState(PetState.HUNGRY, 9);  // set a number near the critical value
-        
-        // Wait for state update
-        Thread.sleep(3100);  // 等待3.1
-        
-        Assert.assertTrue("Update listener should be called", listenerCalled[0]);
-    }
+  /**
+   * Set up the environment for TimeManager Test
+   */
+  @Before
+  public void setUp() {
+    pet = new Pet();
+    timeManager = new TimeManager(pet) {
+      @Override
+      public void notifyStateChange(String message) {
+        // 測試中不需要實際發送通知
+      }
+    };
+    pet.setTimeManager(timeManager);
+    // 確保在每個測試開始時重置計時器
+    timeManager.restart();
+  }
 
-    /**
-     * Tests that the TimeManager properly shuts down and stops updating states.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testShutdownBehavior() throws InterruptedException {
-        timeManager.shutdown();
-        // 確保在shutdown後狀態不會改變
-        int initialScore = pet.getStateScore(PetState.HUNGRY);
-        Thread.sleep(5100);
-        Assert.assertEquals(initialScore, pet.getStateScore(PetState.HUNGRY));
-    }
+  @Test
+  public void testHealthDecrease() throws InterruptedException {
+    pet.updateState(PetState.HUNGRY, 10);
+    int initialHealth = pet.getHealth();
+    Thread.sleep(1100);
+    Assert.assertTrue(pet.getHealth() <= initialHealth - 2);
+  }
 
-    /**
-     * Tests health recovery during sleep.
-     * Health should increase while pet is sleeping.
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testHealthRecoveryDuringSleep() throws InterruptedException {
-        // 设置初始生命值为50
-        pet.setHealth(50);
-        // 确保pet和TimeManager关联
-        pet.setTimeManager(timeManager);
-        // 让宠物进入睡眠状态
-        pet.updateState(PetState.TIRED, 10);
-        pet.performAction(PetAction.REST);
-        
-        // 确认宠物在睡眠状态
-        Assert.assertTrue(pet.isSleeping());
-        
-        // 等待1.1秒让生命值恢复
-        Thread.sleep(1100);
-        
-        // 验证生命值增加了
-        Assert.assertTrue(pet.getHealth() >= 55);  // 每秒恢复5点
-    }
+  @Test
+  public void testHealthIncrease() throws InterruptedException {
+    pet.setHealth(50);
+    Thread.sleep(1100);
+    Assert.assertTrue(pet.getHealth() >= 55);
+  }
 
-    /**
-     * Tests automatic wake up functionality
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testWakeUpFunctionality() throws InterruptedException {
-        // 确保pet和TimeManager关联
-        pet.setTimeManager(timeManager);
-        
-        // 让宠物进入睡眠状态
-        pet.updateState(PetState.TIRED, 10);
-        pet.performAction(PetAction.REST);
-        
-        // 确认宠物在睡眠状态
-        Assert.assertTrue(pet.isSleeping());
-        
-        // 直接调用wakeUp
-        pet.wakeUp();
-        
-        // 验证宠物已经醒来
-        Assert.assertFalse(pet.isSleeping());
-        Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
-    }
+  /**
+   * Tests hunger state increase rate.
+   * Hunger should increase by 3 points every 2 seconds.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testHungerIncrease() throws InterruptedException {
+    // Record initial hunger score
+    int initialScore = pet.getStateScore(PetState.HUNGRY);
+    // Wait for 2 seconds (+3 points)
+    Thread.sleep(5100);
+    Assert.assertTrue(pet.getStateScore(PetState.HUNGRY) >= initialScore + 3);
+  }
 
-    /**
-     * Tests automatic wake up after 60 seconds of sleep
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testAutoWakeUpAfterSixtySeconds() throws InterruptedException {
-        // 确保pet和TimeManager关联
-        pet.setTimeManager(timeManager);
-        
-        // 让宠物进入睡眠状态
-        pet.updateState(PetState.TIRED, 10);
-        pet.performAction(PetAction.REST);
-        
-        // 确认宠物在睡眠状态
-        Assert.assertTrue(pet.isSleeping());
-        
-        // 设置一个监听器来捕获状态变化
-        final boolean[] wakeUpCalled = {false};
-        timeManager.setUpdateListener(() -> {
-            if (!pet.isSleeping()) {
-                wakeUpCalled[0] = true;
-            }
-        });
-        
-        // 等待足够长的时间（比如5秒）让自动唤醒发生
-        Thread.sleep(65000);
-        
-        // 验证宠物已经自动醒来
-        Assert.assertFalse(pet.isSleeping());
-        Assert.assertTrue(wakeUpCalled[0]);
-        Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
-    }
+  /**
+   * Tests cleanliness state decrease rate.
+   * Dirtiness should increase by 5 points every 10 seconds.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testCleanlinessDecrease() throws InterruptedException {
+    // Record initial cleanliness score
+    int initialScore = pet.getStateScore(PetState.DIRTY);
+    // Wait for 15 seconds (+5 points)
+    Thread.sleep(15100);
+    Assert.assertTrue(pet.getStateScore(PetState.DIRTY) >= initialScore + 5);
+  }
 
-    /**
-     * Tests that pet stays asleep before 60 seconds
-     * @throws InterruptedException if sleep is interrupted
-     */
-    @Test
-    public void testPetStaysAsleepBefore60Seconds() throws InterruptedException {
-        // 确保pet和TimeManager关联
-        pet.setTimeManager(timeManager);
-        
-        // 让宠物进入睡眠状态
-        pet.updateState(PetState.TIRED, 10);
-        pet.performAction(PetAction.REST);
-        
-        // 确认宠物在睡眠状态
-        Assert.assertTrue(pet.isSleeping());
-        
-        // 等待一个较短的时间（比如30秒）
-        Thread.sleep(30000);
-        
-        // 验证宠物仍在睡眠
-        Assert.assertTrue(pet.isSleeping());
-        Assert.assertEquals(PetState.TIRED, pet.getCurrentState());
-    }
+  /**
+   * Tests tiredness increase rate.
+   * Tiredness should increase by 4 points every 10 seconds.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testTirednessIncrease() throws InterruptedException {
+    // Record initial tiredness score
+    int initialScore = pet.getStateScore(PetState.TIRED);
+    // Wait for 15 seconds (+4 points)
+    Thread.sleep(15100);
+    Assert.assertTrue(pet.getStateScore(PetState.TIRED) >= initialScore + 4);
+  }
+
+  /**
+   * Tests boredom increase rate.
+   * Boredom should increase by 2 points every 5 seconds.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testBoredIncrease() throws InterruptedException {
+    // Record initial boredom score
+    int initialScore = pet.getStateScore(PetState.BORED);
+    // Wait for 10 seconds (+2 points)
+    Thread.sleep(10100);
+    Assert.assertTrue(pet.getStateScore(PetState.BORED) >= initialScore + 2);
+  }
+
+  /**
+   * Tests that states don't change during sleep.
+   * All state scores should remain constant while pet is sleeping.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testSleepingStateFreeze() throws InterruptedException {
+    // Record hunger score before sleep
+    int hungryScore = pet.getStateScore(PetState.HUNGRY);
+    // confirm pet and TimeManager are related to each other !? important
+    pet.setTimeManager(timeManager);
+    // Put pet to sleep
+    pet.updateState(PetState.TIRED, 10);
+    pet.performAction(PetAction.REST);
+    // confirm pet is sleeping
+    Assert.assertTrue(pet.isSleeping());
+    // Wait and verify score hasn't changed,
+    // initially if no sleep should increase by 3 points every 5 seconds
+    Thread.sleep(15100);
+    Assert.assertEquals(
+        hungryScore, pet.getStateScore(PetState.HUNGRY));
+  }
+
+  /**
+   * Tests that the update listener is properly notified of state changes.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testUpdateListenerNotification() throws InterruptedException {
+    final boolean[] listenerCalled = {false};
+    timeManager.setUpdateListener(() -> listenerCalled[0] = true);
+
+    // ensure pet and TimeManager are related to each other
+    pet.setTimeManager(timeManager);
+
+    // set a state score close to critical
+    pet.updateState(PetState.HUNGRY, 9);  // set a number near the critical value
+
+    // Wait for state update
+    Thread.sleep(3100);  // 等待3.1
+
+    Assert.assertTrue("Update listener should be called", listenerCalled[0]);
+  }
+
+  /**
+   * Tests that the TimeManager properly shuts down and stops updating states.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testShutdownBehavior() throws InterruptedException {
+    timeManager.shutdown();
+    // 確保在shutdown後狀態不會改變
+    int initialScore = pet.getStateScore(PetState.HUNGRY);
+    Thread.sleep(5100);
+    Assert.assertEquals(initialScore, pet.getStateScore(PetState.HUNGRY));
+  }
+
+  /**
+   * Tests health recovery during sleep.
+   * Health should increase while pet is sleeping.
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testHealthRecoveryDuringSleep() throws InterruptedException {
+    // 设置初始生命值为50
+    pet.setHealth(50);
+    // 确保pet和TimeManager关联
+    pet.setTimeManager(timeManager);
+    // 让宠物进入睡眠状态
+    pet.updateState(PetState.TIRED, 10);
+    pet.performAction(PetAction.REST);
+
+    // 确认宠物在睡眠状态
+    Assert.assertTrue(pet.isSleeping());
+
+    // 等待1.1秒让生命值恢复
+    Thread.sleep(1100);
+
+    // 验证生命值增加了
+    Assert.assertTrue(pet.getHealth() >= 55);  // 每秒恢复5点
+  }
+
+  /**
+   * Tests automatic wake up functionality
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testWakeUpFunctionality() throws InterruptedException {
+    // 确保pet和TimeManager关联
+    pet.setTimeManager(timeManager);
+
+    // 让宠物进入睡眠状态
+    pet.updateState(PetState.TIRED, 10);
+    pet.performAction(PetAction.REST);
+
+    // 确认宠物在睡眠状态
+    Assert.assertTrue(pet.isSleeping());
+
+    // 直接调用wakeUp
+    pet.wakeUp();
+
+    // 验证宠物已经醒来
+    Assert.assertFalse(pet.isSleeping());
+    Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+  }
+
+  /**
+   * Tests automatic wake up after 60 seconds of sleep
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testAutoWakeUpAfterSixtySeconds() throws InterruptedException {
+    // 确保pet和TimeManager关联
+    pet.setTimeManager(timeManager);
+
+    // 让宠物进入睡眠状态
+    pet.updateState(PetState.TIRED, 10);
+    pet.performAction(PetAction.REST);
+
+    // 确认宠物在睡眠状态
+    Assert.assertTrue(pet.isSleeping());
+
+    // 设置一个监听器来捕获状态变化
+    final boolean[] wakeUpCalled = {false};
+    timeManager.setUpdateListener(() -> {
+      if (!pet.isSleeping()) {
+        wakeUpCalled[0] = true;
+      }
+    });
+
+    // 等待足够长的时间（比如5秒）让自动唤醒发生
+    Thread.sleep(65000);
+
+    // 验证宠物已经自动醒来
+    Assert.assertFalse(pet.isSleeping());
+    Assert.assertTrue(wakeUpCalled[0]);
+    Assert.assertEquals(PetState.NORMAL, pet.getCurrentState());
+  }
+
+  /**
+   * Tests that pet stays asleep before 60 seconds
+   *
+   * @throws InterruptedException if sleep is interrupted
+   */
+  @Test
+  public void testPetStaysAsleepBefore60Seconds() throws InterruptedException {
+    // 确保pet和TimeManager关联
+    pet.setTimeManager(timeManager);
+
+    // 让宠物进入睡眠状态
+    pet.updateState(PetState.TIRED, 10);
+    pet.performAction(PetAction.REST);
+
+    // 确认宠物在睡眠状态
+    Assert.assertTrue(pet.isSleeping());
+
+    // 等待一个较短的时间（比如30秒）
+    Thread.sleep(30000);
+
+    // 验证宠物仍在睡眠
+    Assert.assertTrue(pet.isSleeping());
+    Assert.assertEquals(PetState.TIRED, pet.getCurrentState());
+  }
 } 
