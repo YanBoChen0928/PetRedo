@@ -10,6 +10,11 @@ import model.state.PetStateBase;
 import model.state.SleepingState;
 import model.state.TiredState;
 
+//Todo: currently Pet.java and TimeManger.java
+// are both belong to the model, depending on each other.
+// However, should be have a unified interface and instance to communicate with controller.
+// or another instance that Main.java would connect with.
+
 /**
  * Represents a virtual pet with various states and attributes.
  * The pet has health, different states (hungry, tired, etc.), and can perform various actions.
@@ -108,6 +113,7 @@ public class Pet {
 
   /**
    * Updates the current state based on state scores and weights.
+   * !important: Very import core code for determining the current state of the pet.
    */
   public void updateCurrentState() {
     if (isSleeping) {
@@ -251,12 +257,6 @@ public class Pet {
       setSleeping(false);
       currentState = PetState.NORMAL;
       currentStateObject = new NormalState(this);
-      /*
-      if (currentStateObject != null) {
-        currentStateObject.onWakeUp();
-        // we can trace the logic of onWakeUp() in the NormalState.java
-      }
-      */
     }
   }
 
@@ -286,6 +286,8 @@ public class Pet {
 
   /**
    * To get the pet's health.
+   *
+   * @return The pet's health (int)
    */
   public int getHealth() {
     return health;
@@ -386,6 +388,7 @@ public class Pet {
       stateScores.put(state, 0);
       //
       previousState = PetState.NORMAL;
+      // because the state is reset to 0, the previous state should be normal as beginning
       updateCurrentState();
     }
   }
