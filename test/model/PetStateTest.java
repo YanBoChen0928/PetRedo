@@ -39,6 +39,10 @@ public class PetStateTest {
   private PetStateBase happyState;
   private PetStateBase sleepingState;
 
+  /**
+   * Sets up the test fixture before each test method.
+   */
+
   @org.junit.Before
   public void setUp() {
     pet = new Pet();
@@ -201,6 +205,10 @@ public class PetStateTest {
   public void testSleepingStateType() { // be careful: SleepingState is based on TIRED
     org.junit.Assert.assertEquals(PetState.TIRED, sleepingState.getStateType());
   }
+
+  /**
+   * Tests that the pet is correctly associated with each state.
+   */
 
   // General State Tests
   @org.junit.Test
