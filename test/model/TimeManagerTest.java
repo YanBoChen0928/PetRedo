@@ -223,7 +223,7 @@ public class TimeManagerTest {
   }
 
   /**
-   * Tests automatic wake up after 60 seconds of sleep
+   * Tests automatic wake up after 60 seconds of sleep.
    *
    * @throws InterruptedException if sleep is interrupted
    */
@@ -257,7 +257,7 @@ public class TimeManagerTest {
   }
 
   /**
-   * Tests that pet stays asleep before 60 seconds
+   * Tests that pet stays asleep before 60 seconds.
    *
    * @throws InterruptedException if sleep is interrupted
    */

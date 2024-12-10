@@ -178,7 +178,7 @@ public class Pet {
           final PetStateBase finalStateObject = currentStateObject;
           new Thread(() -> {
             try {
-              Thread.sleep(100); // 短暂延迟，确保在happy消息之后
+              Thread.sleep(100); // short pause, to let the message behind the happy message
               PetAction requiredAction = PetAction.getActionForState(finalCriticalState);
               timeManager.notifyStateChange(String.format("%s Please %s your pet!",
                   finalStateObject.getStateMessage(),
