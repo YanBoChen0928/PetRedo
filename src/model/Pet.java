@@ -102,7 +102,7 @@ public class Pet {
       int currentScore = Math.min(Math.max(score, 0), MAX_SCORE);
       stateScores.put(state, currentScore);
       if (currentScore >= MAX_SCORE && timeManager != null) {  // 檢查 timeManager 是否存在
-        PetAction action = PetAction.getActionForState(state);
+        PetAction action = PetAction.getActionForState(state); // check if the action fits the state
         timeManager.notifyStateChange(String.format("Your pet needs %s! Please %s your pet!",
             action.toString().toLowerCase(),
             action.toString().toLowerCase()));

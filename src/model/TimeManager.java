@@ -65,7 +65,7 @@ public class TimeManager {
    */
   public void shutdown() {
     if (scheduler != null && !scheduler.isShutdown()) {
-      scheduler.shutdownNow();  // Is shunt down immediately
+      scheduler.shutdownNow();  // If it activates shutdown, then Is shunt down immediately
       try {
         // Wait for the scheduler to terminate
         scheduler.awaitTermination(100, TimeUnit.MILLISECONDS);
@@ -104,7 +104,8 @@ public class TimeManager {
    */
   public void notifyStateChange(String message) {
     if (messageListener != null) {
-      // if the pet is dead, block all non-death messages
+      // if the pet is dead, block all non-death messages, the code will not process down
+      // to the messageListener.accept(message) line
       if (pet.getHealth() <= 0 && !message.contains("has died")) {
         return;
       }
@@ -197,6 +198,7 @@ public class TimeManager {
 
   /**
    * Updates a specific state's score.
+   * (should be better when changed to name after: updateStateScore)
    * Skips update if pet is sleeping (except for TIRED state).
    *
    * @param state The state to update

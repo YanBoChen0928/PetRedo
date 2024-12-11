@@ -130,12 +130,17 @@ public class PetView extends JFrame {
 
   /**
    * Initializes image labels for all pet states.
+   * !!! important: images must be in the "images" folder in the resources directory !!!
+   * using getClassLoader().getResource() to load images from the resources directory.
    */
   private void initializeStateImages() {
     for (String state : STATES) {
       JLabel imageLabel = new JLabel();
       imageLabel.setHorizontalAlignment(JLabel.CENTER);
-
+      // to load images from the resources directory, and put them in the cardPanel,
+      // reference: 162: updatePetIcon() method
+      // use getClass().getClassLoader().getResource() to load images from the resources directory
+      // we use getClassLoader() because use classPath instead of file path for .jar and .dmg use
       String imagePath = "images/" + state + ".png";
       URL resource = getClass().getClassLoader().getResource(imagePath);
       if (resource != null) {

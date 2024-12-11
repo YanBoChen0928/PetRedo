@@ -23,8 +23,8 @@ public class Main {
   public static void main(String[] args) {
     // Initialize MVC components
     Pet pet = new Pet();
-    TimeManager timeManager = new TimeManager(pet);
-    pet.setTimeManager(timeManager);
+    TimeManager timeManager = new TimeManager(pet); // let time manager know the pet
+    pet.setTimeManager(timeManager); // let pet know the time manager
     PetView view = new PetView();
     PetController controller = new PetController(pet, view);
 
