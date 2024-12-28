@@ -176,6 +176,7 @@ public class PetView extends JFrame {
    *
    * @param health Current health value
    */
+  // update the health value and handle the death state (the pet is dead)
   public void updateHealth(int health) {
     healthLabel.setText("Health: " + health);
     if (health <= 0) {
@@ -248,6 +249,7 @@ public class PetView extends JFrame {
    *
    * @param isSleeping Current sleep state
    */
+  // update the Rest button text based on the sleep state
   public void updateRestButton(boolean isSleeping) {
     restButton.setText(isSleeping ? "Wake Up" : "Rest");
   }
@@ -255,6 +257,7 @@ public class PetView extends JFrame {
   /**
    * Disables all action buttons when pet dies.
    */
+  // disable all action buttons when the pet dies (the pet is dead)
   private void disableActionButtons() {
     feedButton.setEnabled(false);
     cleanButton.setEnabled(false);

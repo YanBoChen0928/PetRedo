@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  * Handles automatic health changes and state score increases.
  */
 public class TimeManager {
-  // One game day equals 1 minute real time
+  // One game day equals 1 minute real time, for future use
   private static final long DAY_DURATION = 60_000;
   private final Pet pet;
   private ScheduledExecutorService scheduler;
@@ -99,9 +99,11 @@ public class TimeManager {
   /**
    * Notifies the message listener of a state change.
    * Blocks non-death messages if the pet is dead.
+   * !!! important implementation to avoid leaking the message when the pet is dead
    *
    * @param message The message to send
    */
+  // respond to the message listener when the pet's status changes
   public void notifyStateChange(String message) {
     if (messageListener != null) {
       // if the pet is dead, block all non-death messages, the code will not process down
@@ -113,6 +115,7 @@ public class TimeManager {
     }
   }
 
+  // respond to the update listener when the pet's status changes,
   private void notifyUpdate() {
     if (updateListener != null) {
       updateListener.run();
@@ -123,6 +126,7 @@ public class TimeManager {
    * Sets up periodic tasks for updating pet status.
    * - Health updates every second
    * - State updates at different intervals based on state type
+   * !!! The proudest part and the most challenged part of the project
    */
   private void initializeTimers() {
     // Health update every second
@@ -175,9 +179,13 @@ public class TimeManager {
     }
 
     if (pet.getCurrentState() != PetState.NORMAL) {
+      // the pet's health decreases if the pet is not in the normal state
       int newHealth = pet.getHealth() - Pet.HEALTH_DECREASE_RATE;
+      // if the pet's health is less than or equal to 0, the pet dies
+      // message is sent to the message listener (dead)
       if (newHealth <= 0) {
-        shutdown();  // close and stop all schedulers
+        shutdown(); // close and stop all schedulers
+
         // Reset all states to the normal state
         for (PetState state : PetState.values()) {
           if (state != PetState.NORMAL) {
@@ -192,6 +200,8 @@ public class TimeManager {
       }
       pet.setHealth(newHealth);
     } else if (pet.getHealth() < Pet.MAX_HEALTH) {
+      // increase the pet's health if the pet is in the normal state
+      // and the health is less than the maximum
       pet.setHealth(Math.min(pet.getHealth() + Pet.HEALTH_RECOVERY_RATE, Pet.MAX_HEALTH));
     }
   }
@@ -208,8 +218,9 @@ public class TimeManager {
       return;  // if the pet is dead, no need to update state
     }
 
+    // the logic to deal with the state score when the pet is sleeping
     if (pet.isSleeping()) {
-      return;  // if the pet is sleeping, no need to update state
+      return;  // if the pet is sleeping, no need to update state score
     }
 
     int currentScore = pet.getStateScore(state);
@@ -223,6 +234,7 @@ public class TimeManager {
 
   /**
    * Checks if the pet has been sleeping for a minute and wakes it up if so.
+   * !!! important setting for the pet to wake up after a minute of sleep
    */
 
   private void checkSleepTime() {

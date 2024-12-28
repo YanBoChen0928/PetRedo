@@ -42,7 +42,7 @@ public class Pet {
    */
   public Pet() {
     this.health = MAX_HEALTH;
-    // use concurrent
+    // use concurrentHashMap to avoid the ConcurrentModificationException
     this.stateScores = new ConcurrentHashMap<>();
     this.currentState = PetState.NORMAL;
     this.isSleeping = false;
@@ -57,6 +57,7 @@ public class Pet {
    *
    * @return The TimeManager associated with the pet
    */
+  // ToDo: (for presentation) one of the major challenges when I work on this project
   public TimeManager getTimeManager() {
     return timeManager;
   }
@@ -87,6 +88,7 @@ public class Pet {
 
   /**
    * Updates the score for a specific state and recalculates current state.
+   * The mechanism to notify user when the pet is critical.
    *
    * @param state The state to update
    * @param score The new score value (will be capped at MAX_SCORE)
@@ -97,12 +99,15 @@ public class Pet {
       return;
     }
 
+    // when the pet is critical, update the state and notify the user to act
     if (state != PetState.NORMAL) {
       //restrict the score to be within 0 and MAX_SCORE
       int currentScore = Math.min(Math.max(score, 0), MAX_SCORE);
       stateScores.put(state, currentScore);
-      if (currentScore >= MAX_SCORE && timeManager != null) {  // 檢查 timeManager 是否存在
-        PetAction action = PetAction.getActionForState(state); // check if the action fits the state
+      if (currentScore >= MAX_SCORE && timeManager != null) {
+        // check if the pet is critical and have set the timeManager
+        PetAction action = PetAction.getActionForState(state);
+        // check if the action fits the state
         timeManager.notifyStateChange(String.format("Your pet needs %s! Please %s your pet!",
             action.toString().toLowerCase(),
             action.toString().toLowerCase()));
@@ -112,8 +117,8 @@ public class Pet {
   }
 
   /**
-   * Updates the current state based on state scores and weights.
-   * !important: Very import core code for determining the current state of the pet.
+   * !!! Updates the current state based on state scores and weights.
+   * !!! important: Very import core code for determining the current state of the pet.
    */
   public void updateCurrentState() {
     if (isSleeping) {
@@ -135,6 +140,8 @@ public class Pet {
       // (here is concurrentHashMap), and the key is the state.
       if (stateScores.get(state) >= MAX_SCORE) {
         // Map.get(Object key) returns the value to which the specified key is mapped,
+        // So it will change the state based on the weight even more than 1 state has score 10
+        // which 10 is the MAX_SCORE here.
         if (state.getWeight() > maxWeight) {
           maxWeight = state.getWeight();
           criticalState = state;
@@ -194,7 +201,7 @@ public class Pet {
   }
 
   /**
-   * Performs an action on the pet.
+   * Performs an action on the pet, should be based on the pet's current state (their needs).
    * Actions can only be performed if the pet is not sleeping (except REST).
    *
    * @param action The action to perform
@@ -229,11 +236,12 @@ public class Pet {
   }
 
   /**
-   * To deal with the logic of showing happy state.
+   * !!! Important core to deal with the logic of showing happy state.
    * The happy state will be shown for 2 seconds.
    * An iconic notification that the user has done something good for the pet.
    * (And the user's action will be shown in the GUI message box)
    */
+  //Todo: consider may put in the TimeManager to deal with the time-based operation
   private void showHappyState() {
     currentStateObject = new HappyState(this);
 

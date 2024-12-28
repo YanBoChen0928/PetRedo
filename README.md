@@ -12,7 +12,7 @@ Developed in Java using MVC architecture, the game simulates real pet care throu
 and interaction mechanisms.
 
 Players need to attend to various pet needs (hunger, cleanliness, tiredness, entertainment) and
-take appropriate care measures, fostering both entertainment and a sense of responsibility. Have fun !!!
+take appropriate care measures, fostering both fgentertainment and a sense of responsibility. Have fun !!!
 
 ## Features
 

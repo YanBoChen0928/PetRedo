@@ -62,7 +62,7 @@ public class PetController {
       handleRestAction();
       return;
     }
-
+    // main logic to handle the action, would be happy if correct
     try {
       pet.performAction(action);
       if (pet.getStateScore(action.getTargetState()) == 0) {
@@ -125,7 +125,7 @@ public class PetController {
   }
 
   /**
-   * Update the view based on the pet's health, current state, and pet icon.
+   * ! Controller: Update the view based on the pet's health, current state, and pet icon.
    */
   public void updateView() {
     view.updateHealth(pet.getHealth());
